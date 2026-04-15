@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SuperteamLogo } from "@/components/superteam-logo";
 
 const navLinks = [
   { label: "Home", href: "#hero" },
@@ -20,13 +21,8 @@ export function FooterSection() {
     <footer className="relative overflow-hidden border-t border-brand-green/35 bg-surface-nav px-4 py-12 md:px-8 md:py-14">
       <div className="mx-auto grid w-full max-w-7xl gap-10 md:grid-cols-12">
         <div className="md:col-span-5">
-          <div className="inline-flex items-center gap-3 rounded-lg border border-border-yellowmd bg-surface-card/70 px-3 py-2">
-            <div className="flex size-8 items-center justify-center rounded-md bg-brand-yellow font-mono text-xs font-black text-on-yellow">
-              ST
-            </div>
-            <p className="font-display text-sm font-black uppercase tracking-wide text-text-primary">
-              Superteam <span className="text-brand-yellow">Australia</span>
-            </p>
+          <div className="inline-flex items-center rounded-lg border border-brand-green/35 bg-surface-card/70 px-4 py-3">
+            <SuperteamLogo className="inline-flex items-center gap-2.5" />
           </div>
           <p className="mt-4 max-w-md font-body text-sm leading-relaxed text-text-secondary">
             A high-signal community helping Australian builders, founders, creatives, and operators thrive in the
@@ -36,14 +32,14 @@ export function FooterSection() {
             href="https://superteam.fun"
             target="_blank"
             rel="noreferrer"
-            className="mt-5 inline-flex items-center gap-2 rounded-full border border-border-yellowmd bg-brand-yellow/10 px-4 py-2 font-body text-xs font-black uppercase tracking-wide text-brand-yellow transition-colors hover:border-border-yellowhi hover:bg-brand-yellow/15"
+            className="mt-5 inline-flex items-center gap-2 rounded-full border border-brand-green/35 bg-brand-green/10 px-4 py-2 font-body text-xs font-black uppercase tracking-wide text-brand-green transition-colors hover:border-brand-green/55 hover:bg-brand-green/15"
           >
             Visit global Superteam
           </a>
         </div>
 
         <div className="md:col-span-3">
-          <p className="mb-3 font-mono text-xs font-extrabold uppercase tracking-widest text-brand-yellow">Navigation</p>
+          <p className="mb-3 font-mono text-xs font-extrabold uppercase tracking-widest text-brand-green">Navigation</p>
           <nav className="flex flex-col gap-2">
             {navLinks.map((item) => (
               <Link
@@ -58,7 +54,7 @@ export function FooterSection() {
         </div>
 
         <div className="md:col-span-4">
-          <p className="mb-3 font-mono text-xs font-extrabold uppercase tracking-widest text-brand-yellow">Socials</p>
+          <p className="mb-3 font-mono text-xs font-extrabold uppercase tracking-widest text-brand-green">Socials</p>
           <div className="flex flex-col gap-2">
             {socialLinks.map((item) => (
               <a

@@ -1,8 +1,6 @@
 import { Hero } from "@/components/hero/hero";
 import { EventsSection } from "@/components/home/events-section";
 import { FaqSection } from "@/components/home/faq-section";
-import { FooterSection } from "@/components/home/footer-section";
-import { FloatingNavbar } from "@/components/home/floating-navbar";
 import { CommunitySection } from "@/components/home/community-section";
 import { PartnersSection } from "@/components/home/partners-section";
 import { PostHeroWithBeams } from "@/components/home/post-hero-with-beams";
@@ -12,7 +10,6 @@ import { WhatWeDoSection } from "@/components/home/what-we-do-section";
 export default function Home() {
   return (
     <main className="bg-surface-base">
-      <FloatingNavbar />
       <section id="hero" className="min-h-dvh">
         <Hero />
       </section>
@@ -27,7 +24,6 @@ export default function Home() {
         <EventsSection />
         <FaqSection />
       </PostHeroWithBeams>
-      <FooterSection />
     </main>
   );
 }

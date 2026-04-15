@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, DM_Sans, Space_Mono } from "next/font/google";
 import "@/lib/fontawesome";
 import "./globals.css";
+import { FloatingNavbar } from "@/components/home/floating-navbar";
+import { FooterSection } from "@/components/home/footer-section";
 
 const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -36,7 +38,11 @@ export default function RootLayout({
       lang="en"
       className={`${bricolageGrotesque.variable} ${dmSans.variable} ${spaceMono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <FloatingNavbar />
+        {children}
+        <FooterSection />
+      </body>
     </html>
   );
 }

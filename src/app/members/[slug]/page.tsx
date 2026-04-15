@@ -20,7 +20,7 @@ export default async function MemberProfilePage({
   }
 
   return (
-    <main className="min-h-dvh bg-surface-base px-4 py-14 md:px-8 md:py-16">
+    <main className="min-h-dvh bg-surface-base px-4 pt-24 pb-14 md:px-8 md:pt-28 md:pb-16">
       <div className="mx-auto w-full max-w-5xl">
         <Link
           href="/members"

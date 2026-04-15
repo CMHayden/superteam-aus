@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { CommunityMembersCarousel } from "@/components/home/community-members-carousel";
@@ -119,10 +119,9 @@ function TelegramIcon({ className }: { className?: string }) {
 type CommunityMember = (typeof communityMembers)[number];
 
 function CommunityMembersScroller() {
-  const marqueeItems = [...communityMembers, ...communityMembers];
+  const marqueeItems = [...communityMembers, ...communityMembers, ...communityMembers, ...communityMembers];
   const [active, setActive] = useState<CommunityMember | null>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const id = useId();
   const cardRef = useRef<HTMLDivElement>(null);
 
   useOutsideClick(cardRef, () => setActive(null));
@@ -166,31 +165,31 @@ function CommunityMembersScroller() {
           <div className="fixed inset-0 z-50 grid place-items-center px-4 py-6">
             <motion.div
               ref={cardRef}
-              layoutId={`member-card-${active.name}-${id}`}
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ duration: 0.2 }}
               className="w-full max-w-xl overflow-hidden rounded-3xl border border-border-yellowmd bg-surface-card shadow-2xl"
             >
               <div className="space-y-4 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-4">
-                    <motion.img
-                      layoutId={`member-avatar-${active.name}-${id}`}
+                    <img
                       src={active.avatar}
                       alt={active.name}
                       className="h-20 w-20 rounded-lg object-cover"
                     />
                     <div className="space-y-1">
-                      <motion.h3
-                        layoutId={`member-name-${active.name}-${id}`}
+                      <h3
                         className="font-display text-2xl font-black text-text-primary"
                       >
                         {active.name}
-                      </motion.h3>
-                      <motion.p
-                        layoutId={`member-title-${active.name}-${id}`}
+                      </h3>
+                      <p
                         className="font-body text-sm font-bold text-text-secondary"
                       >
                         {active.title}
-                      </motion.p>
+                      </p>
                       <p className="font-body text-sm text-text-secondary">
                         {active.role}
                         <span className="px-1 text-text-muted">•</span>
@@ -269,34 +268,26 @@ function CommunityMembersScroller() {
           )}
         >
           {marqueeItems.map((member, index) => (
-            <motion.button
+            <button
               type="button"
               key={`${member.name}-${index}`}
               onClick={() => setActive(member)}
-              layoutId={`member-card-${member.name}-${id}`}
               className="flex h-12 min-w-[210px] cursor-pointer items-center gap-3 rounded-lg border border-border-yellowmd bg-surface-card/40 px-3 text-left transition-[border-color,box-shadow,background-color] duration-200 hover:border-border-yellowhi hover:bg-surface-card/60 hover:shadow-[0_0_0_1px_rgb(249_215_28/0.28),0_0_18px_rgb(249_215_28/0.18)]"
             >
-              <motion.img
-                layoutId={`member-avatar-${member.name}-${id}`}
+              <img
                 src={member.avatar}
                 alt={member.name}
                 className="h-8 w-8 shrink-0 rounded-md object-cover"
               />
               <div className="min-w-0">
-                <motion.p
-                  layoutId={`member-name-${member.name}-${id}`}
-                  className="truncate font-body text-xs font-bold text-text-primary"
-                >
+                <p className="truncate font-body text-xs font-bold text-text-primary">
                   {member.name}
-                </motion.p>
-                <motion.p
-                  layoutId={`member-title-${member.name}-${id}`}
-                  className="truncate font-body text-[11px] text-text-secondary"
-                >
+                </p>
+                <p className="truncate font-body text-[11px] text-text-secondary">
                   {member.title}
-                </motion.p>
+                </p>
               </div>
-            </motion.button>
+            </button>
           ))}
         </div>
       </div>

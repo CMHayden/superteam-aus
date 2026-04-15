@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { openJoinApplicationModal } from "@/lib/join-application-modal";
+import { SuperteamLogo } from "@/components/superteam-logo";
 
 const navItems = [
   { label: "Members", href: "/members" },
@@ -35,17 +36,12 @@ export function FloatingNavbar() {
         className={cn(
           "pointer-events-auto mx-auto flex w-full items-center justify-between border border-transparent px-4 py-3 transition-all duration-300 md:px-6",
           isFloating
-            ? "max-w-5xl rounded-2xl border-border-yellowmd bg-surface-nav/92 shadow-[0_12px_34px_rgba(0,0,0,0.35)] backdrop-blur-md"
+            ? "max-w-7xl rounded-2xl border-brand-green/35 bg-surface-nav/92 shadow-[0_12px_34px_rgba(0,0,0,0.35)] backdrop-blur-md"
             : "max-w-full rounded-none bg-transparent",
         )}
       >
-        <Link href="#hero" className="inline-flex items-center gap-2">
-          <span className="flex size-7 items-center justify-center rounded-md bg-brand-yellow font-mono text-[10px] font-black text-on-yellow">
-            ST
-          </span>
-          <span className="font-display text-sm font-black uppercase tracking-wide text-text-primary">
-            Superteam <span className="text-brand-yellow">Australia</span>
-          </span>
+        <Link href="/" className="inline-flex items-center">
+          <SuperteamLogo className="inline-flex items-center gap-2" />
         </Link>
 
         <nav className="hidden items-center gap-1.5 md:flex">
@@ -53,7 +49,7 @@ export function FloatingNavbar() {
             <Link
               key={item.label}
               href={item.href}
-              className="rounded-full px-3 py-1.5 font-body text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:bg-brand-yellow/10 hover:text-brand-yellow"
+              className="rounded-full px-3 py-1.5 font-body text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:bg-brand-green/10 hover:text-brand-green"
             >
               {item.label}
             </Link>

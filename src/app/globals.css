@@ -31,6 +31,15 @@
   }
 }
 
+.partners-marquee-track {
+  animation: partners-marquee 24s linear infinite;
+  will-change: transform;
+}
+
+.partners-marquee-hover:hover .partners-marquee-track {
+  animation-play-state: paused;
+}
+
 @keyframes join-move-vertical {
   0% {
     transform: translateY(-35%);

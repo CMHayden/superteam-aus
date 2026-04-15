@@ -4,7 +4,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
-import { joinFormAllSkills, joinFormLocations, joinFormRoleNames } from "@/lib/join-options";
+import { joinFormLocations, joinFormRoleNames, joinSkillOptionsByRole } from "@/lib/join-options";
 import { members } from "@/lib/members";
 
 const filterPillClass =
@@ -76,7 +76,10 @@ export function MembersDirectory() {
   const [query, setQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("All roles");
   const [selectedLocation, setSelectedLocation] = useState("All locations");
-  const [selectedSkill, setSelectedSkill] = useState("All skills");
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+
+  const roleIsSelected = selectedRole !== "All roles";
+  const roleSkills = roleIsSelected ? (joinSkillOptionsByRole[selectedRole] ?? []) : [];
 
   const filteredMembers = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -89,11 +92,23 @@ export function MembersDirectory() {
 
       const matchesRole = selectedRole === "All roles" || member.role === selectedRole;
       const matchesLocation = selectedLocation === "All locations" || member.location === selectedLocation;
-      const matchesSkill = selectedSkill === "All skills" || member.skills.includes(selectedSkill);
+      const matchesSkills =
+        selectedSkills.length === 0 || selectedSkills.some((skill) => member.skills.includes(skill));
 
-      return matchesSearch && matchesRole && matchesLocation && matchesSkill;
+      return matchesSearch && matchesRole && matchesLocation && matchesSkills;
     });
-  }, [query, selectedRole, selectedLocation, selectedSkill]);
+  }, [query, selectedRole, selectedLocation, selectedSkills]);
+
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills((previous) =>
+      previous.includes(skill) ? previous.filter((item) => item !== skill) : [...previous, skill],
+    );
+  };
+
+  const handleRoleChange = (role: string) => {
+    setSelectedRole(role);
+    setSelectedSkills([]);
+  };
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
@@ -125,11 +140,11 @@ export function MembersDirectory() {
             <fieldset className="space-y-2">
               <legend className="sr-only">Role</legend>
               <div className="flex flex-wrap gap-2">
-                <FilterPill selected={selectedRole === "All roles"} onSelect={() => setSelectedRole("All roles")}>
+                <FilterPill selected={selectedRole === "All roles"} onSelect={() => handleRoleChange("All roles")}>
                   All
                 </FilterPill>
                 {joinFormRoleNames.map((role) => (
-                  <FilterPill key={role} selected={selectedRole === role} onSelect={() => setSelectedRole(role)}>
+                  <FilterPill key={role} selected={selectedRole === role} onSelect={() => handleRoleChange(role)}>
                     {role}
                   </FilterPill>
                 ))}
@@ -137,24 +152,26 @@ export function MembersDirectory() {
             </fieldset>
           </CollapsibleFilterGroup>
 
-          <CollapsibleFilterGroup
-            title="Skill"
-            activeLabel={selectedSkill === "All skills" ? "Any" : selectedSkill}
-          >
-            <fieldset className="space-y-2">
-              <legend className="sr-only">Skill</legend>
-              <div className="flex flex-wrap gap-2">
-                <FilterPill selected={selectedSkill === "All skills"} onSelect={() => setSelectedSkill("All skills")}>
-                  All
-                </FilterPill>
-                {joinFormAllSkills.map((skill) => (
-                  <FilterPill key={skill} selected={selectedSkill === skill} onSelect={() => setSelectedSkill(skill)}>
-                    {skill}
+          {roleIsSelected ? (
+            <CollapsibleFilterGroup
+              title="Skills"
+              activeLabel={selectedSkills.length === 0 ? "Any" : `${selectedSkills.length} selected`}
+            >
+              <fieldset className="space-y-2">
+                <legend className="sr-only">Skills</legend>
+                <div className="flex flex-wrap gap-2">
+                  <FilterPill selected={selectedSkills.length === 0} onSelect={() => setSelectedSkills([])}>
+                    Any
                   </FilterPill>
-                ))}
-              </div>
-            </fieldset>
-          </CollapsibleFilterGroup>
+                  {roleSkills.map((skill) => (
+                    <FilterPill key={skill} selected={selectedSkills.includes(skill)} onSelect={() => toggleSkill(skill)}>
+                      {skill}
+                    </FilterPill>
+                  ))}
+                </div>
+              </fieldset>
+            </CollapsibleFilterGroup>
+          ) : null}
 
           <CollapsibleFilterGroup
             title="Location"
@@ -196,24 +213,29 @@ export function MembersDirectory() {
               className="group overflow-hidden rounded-2xl border border-brand-green/35 bg-surface-card p-4 transition-colors hover:bg-surface-hover"
             >
               <div className="flex items-start gap-3">
-                <Image
-                  src={member.avatar}
-                  alt={member.name}
-                  width={64}
-                  height={64}
-                  className="size-16 rounded-lg object-cover"
-                />
-                <div className="min-w-0">
-                  <h2 className="truncate font-display text-xl font-black text-text-primary">{member.name}</h2>
-                  <p className="text-sm font-bold text-text-secondary">{member.title}</p>
-                  <p className="text-xs text-text-muted">
-                    @{member.twitterHandle} • {member.location}
-                  </p>
+                <div className="flex min-w-0 items-start gap-3">
+                  <Image
+                    src={member.avatar}
+                    alt={member.name}
+                    width={64}
+                    height={64}
+                    className="size-16 rounded-lg object-cover"
+                  />
+                  <div className="min-w-0">
+                    <h2 className="truncate font-display text-xl font-black text-text-primary">{member.name}</h2>
+                    <p className="text-sm font-bold text-text-secondary">{member.title}</p>
+                    <p className="text-xs text-text-muted">
+                      @{member.twitterHandle} • {member.location}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
-                {[member.role, ...member.skills.slice(0, 3)].map((tag) => (
+                <span className="rounded-full border border-brand-green/40 bg-brand-green/10 px-2.5 py-1 text-xs font-bold text-brand-green">
+                  {member.role}
+                </span>
+                {member.skills.slice(0, 3).map((tag) => (
                   <span
                     key={tag}
                     className="rounded-full border border-border-yellowmd bg-brand-yellow/10 px-2.5 py-1 text-xs font-bold text-brand-yellow"
