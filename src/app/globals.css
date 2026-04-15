@@ -1,16 +1,194 @@
 @import "tailwindcss";
 
-:root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+@keyframes aurora {
+  from {
+    background-position:
+      50% 50%,
+      50% 50%;
+  }
+  to {
+    background-position:
+      350% 50%,
+      350% 50%;
+  }
 }
 
+@keyframes hero-title-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes partners-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes join-move-vertical {
+  0% {
+    transform: translateY(-35%);
+  }
+  50% {
+    transform: translateY(35%);
+  }
+  100% {
+    transform: translateY(-35%);
+  }
+}
+
+@keyframes join-move-horizontal {
+  0% {
+    transform: translateX(-35%) translateY(-8%);
+  }
+  50% {
+    transform: translateX(35%) translateY(8%);
+  }
+  100% {
+    transform: translateX(-35%) translateY(-8%);
+  }
+}
+
+@keyframes join-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes community-tweets-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+.community-tweets-ticker {
+  animation: community-tweets-scroll 72s linear infinite;
+  will-change: transform;
+}
+
+.community-tweets-scroll-area:hover .community-tweets-ticker {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .community-tweets-ticker {
+    animation: none;
+  }
+}
+
+/* react-tweet: match Superteam AU surfaces + yellow link accents (see community mock). */
+.community-tweets-feed :where(.react-tweet-theme) {
+  --tweet-container-margin: 0;
+  --tweet-border: none;
+  --tweet-font-family: var(--font-body), ui-sans-serif, sans-serif;
+  --tweet-font-color: var(--color-text-primary);
+  --tweet-font-color-secondary: var(--color-text-muted);
+  --tweet-bg-color: transparent;
+  --tweet-bg-color-hover: rgb(255 255 255 / 0.04);
+  --tweet-quoted-bg-color-hover: rgb(255 255 255 / 0.04);
+  --tweet-body-font-size: 0.875rem;
+  --tweet-body-line-height: 1.375rem;
+  --tweet-header-font-size: 0.875rem;
+  --tweet-header-line-height: 1.125rem;
+  --tweet-info-font-size: 0.8125rem;
+  --tweet-info-line-height: 1.125rem;
+  --tweet-actions-font-size: 0.8125rem;
+  --tweet-actions-line-height: 1rem;
+  --tweet-replies-font-size: 0.8125rem;
+  --tweet-replies-line-height: 1rem;
+  --tweet-color-blue-primary: var(--color-brand-yellow);
+  --tweet-color-blue-primary-hover: var(--color-brand-gold);
+  --tweet-color-blue-secondary: var(--color-brand-yellow);
+  --tweet-color-blue-secondary-hover: rgb(249 215 28 / 0.12);
+  --tweet-twitter-icon-color: var(--color-text-muted);
+  --tweet-verified-blue-color: var(--color-brand-yellow);
+}
+
+/*
+ * Design tokens: dark theme — brand green + yellow from Superteam AU mark.
+ * Green #1B8A3D · Yellow #F9D71C. Only tokens used in the app are defined below.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --animate-aurora: aurora 60s linear infinite;
+  --animate-hero-title: hero-title-gradient 9s ease-in-out infinite alternate;
+
+  /* Brand */
+  --color-brand-green: #1b8a3d;
+  --color-brand-yellow: #f9d71c;
+  --color-brand-sage: #2f5c40;
+  --color-brand-mist: #141a17;
+  --color-brand-ochre: #c9a010;
+  --color-brand-amber: #e8c020;
+  --color-brand-gold: #d4bc18;
+  --color-on-yellow: #0c1210;
+
+  /* Surfaces */
+  --color-surface-base: #0f1411;
+  --color-surface-card: #161d19;
+  --color-surface-hover: #1f2924;
+  --color-surface-nav: #121814;
+
+  /* Text */
+  --color-text-primary: #f2f6f3;
+  --color-text-secondary: #9caea4;
+  --color-text-muted: #8a9e94;
+
+  /* Borders (yellow* = neutral + accent ladder used in components) */
+  --color-border-yellow: rgb(255 255 255 / 0.08);
+  --color-border-yellowmd: rgb(249 215 28 / 0.35);
+  --color-border-yellowhi: rgb(249 215 28 / 0.55);
+
+  --font-display: var(--font-bricolage-grotesque), ui-sans-serif, sans-serif;
+  --font-body: var(--font-dm-sans), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, monospace;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, sans-serif;
+}
+
+:root {
+  --background: var(--color-surface-base);
+  --foreground: var(--color-text-primary);
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Global scrollbar styling to match the dark/yellow brand palette. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-yellowhi) var(--color-surface-nav);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--color-surface-nav);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--color-brand-yellow) 0%, var(--color-brand-gold) 100%);
+  border-radius: 9999px;
+  border: 2px solid var(--color-surface-nav);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ffe56b 0%, var(--color-brand-yellow) 100%);
 }
