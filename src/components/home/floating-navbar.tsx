@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { openJoinApplicationModal } from "@/lib/join-application-modal";
@@ -16,6 +17,7 @@ const navItems = [
 
 export function FloatingNavbar() {
   const [isFloating, setIsFloating] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => {
@@ -48,7 +50,11 @@ export function FloatingNavbar() {
           {navItems.map((item) => (
             <Link
               key={item.label}
-              href={item.href}
+              href={
+                item.href.startsWith("#") && pathname !== "/"
+                  ? `/${item.href}`
+                  : item.href
+              }
               className="rounded-full px-3 py-1.5 font-body text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:bg-brand-green/10 hover:text-brand-green"
             >
               {item.label}
