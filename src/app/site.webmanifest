@@ -1,0 +1,21 @@
+{
+  "name": "Superteam Australia",
+  "short_name": "Superteam AU",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-icon",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#1b8a3d",
+  "background_color": "#071209",
+  "display": "standalone"
+}

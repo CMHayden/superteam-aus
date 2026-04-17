@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MemberProfileInfoCard } from "@/components/members/member-profile-info-card";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { getCommunityMemberBySlug } from "@/lib/cms";
+import { getMemberSocialLinks } from "@/lib/member-profile-social-links";
 
 export default async function MemberProfilePage({
   params,
@@ -15,22 +17,7 @@ export default async function MemberProfilePage({
     notFound();
   }
 
-  const socialLinks = [
-    { label: "Twitter / X", url: member.twitter_url },
-    { label: "GitHub", url: member.github },
-    { label: "LinkedIn", url: member.linkedin },
-    { label: "Portfolio", url: member.portfolio },
-    { label: "Dribbble", url: member.dribbble },
-    { label: "Behance", url: member.behance },
-    { label: "Figma", url: member.figma },
-    { label: "YouTube", url: member.youtube },
-    { label: "TikTok", url: member.tiktok },
-    { label: "Calendly", url: member.calendly },
-    { label: "Notion", url: member.notion },
-    { label: "Company", url: member.company_website },
-    { label: "Organisation", url: member.organisation_website },
-    { label: "Pitch Deck", url: member.pitch_deck },
-  ].filter((l) => l.url);
+  const socialLinks = getMemberSocialLinks(member);
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-surface-base px-4 pt-24 pb-14 md:px-8 md:pt-28 md:pb-16">
@@ -106,30 +93,14 @@ export default async function MemberProfilePage({
         {((member.contributions ?? []).length > 0 || (member.looking_for ?? []).length > 0) && (
           <section className="mt-6 grid gap-4 md:grid-cols-2">
             {(member.contributions ?? []).length > 0 && (
-              <InfoCard title="Contributions" items={member.contributions} />
+              <MemberProfileInfoCard title="Contributions" items={member.contributions} />
             )}
             {(member.looking_for ?? []).length > 0 && (
-              <InfoCard title="Looking for" items={member.looking_for} />
+              <MemberProfileInfoCard title="Looking for" items={member.looking_for} />
             )}
           </section>
         )}
       </div>
     </main>
-  );
-}
-
-function InfoCard({ title, items }: { title: string; items: string[] }) {
-  return (
-    <article className="rounded-2xl border border-brand-green/35 bg-surface-card p-5">
-      <h2 className="font-display text-2xl font-black text-brand-green">{title}</h2>
-      <ul className="mt-3 space-y-2">
-        {items.map((item) => (
-          <li key={item} className="flex items-start gap-2 text-sm text-text-secondary">
-            <span className="mt-2 size-1.5 rounded-full bg-brand-yellow" aria-hidden />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-    </article>
   );
 }

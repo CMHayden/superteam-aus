@@ -54,15 +54,6 @@ export async function getCarouselImages() {
   return data ?? [];
 }
 
-export async function getCommunityMembers() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("community_members")
-    .select("*")
-    .order("display_order");
-  return data ?? [];
-}
-
 export async function getVisibleCommunityMembers() {
   const supabase = await createClient();
   const { data } = await supabase

@@ -4,6 +4,7 @@ import { FaqSection } from "@/components/home/faq-section";
 import { CommunitySection } from "@/components/home/community-section";
 import { PartnersSection } from "@/components/home/partners-section";
 import { PostHeroWithBeams } from "@/components/home/post-hero-with-beams";
+import { SectionReveal } from "@/components/home/section-reveal";
 import { StatsStrip } from "@/components/home/stats-strip";
 import { WhatWeDoSection } from "@/components/home/what-we-do-section";
 import {
@@ -15,7 +16,6 @@ import {
   getCarouselImages,
   getVisibleCommunityMembers,
   getFaqs,
-  getSocialLinks,
   getSiteConfig,
 } from "@/lib/cms";
 
@@ -31,7 +31,6 @@ export default async function Home() {
     carouselImages,
     communityMembers,
     faqs,
-    socialLinks,
     siteConfig,
   ] = await Promise.all([
     getStats(),
@@ -42,7 +41,6 @@ export default async function Home() {
     getCarouselImages(),
     getVisibleCommunityMembers(),
     getFaqs(),
-    getSocialLinks(),
     getSiteConfig(
       "footer_description",
       "join_title",
@@ -62,32 +60,42 @@ export default async function Home() {
       </section>
 
       <PostHeroWithBeams>
-        <div className="mx-4 w-auto overflow-hidden rounded-2xl border border-brand-green/45 bg-surface-card md:mx-auto md:w-full md:max-w-7xl">
-          <StatsStrip
-            stats={stats}
-            headline={siteConfig.stats_headline}
-            subtext={siteConfig.stats_subtext}
+        <SectionReveal>
+          <div className="mx-4 w-auto overflow-hidden rounded-2xl border border-brand-green/45 bg-surface-card md:mx-auto md:w-full md:max-w-7xl">
+            <StatsStrip
+              stats={stats}
+              headline={siteConfig.stats_headline}
+              subtext={siteConfig.stats_subtext}
+            />
+            <PartnersSection partners={partners} />
+          </div>
+        </SectionReveal>
+        <SectionReveal>
+          <WhatWeDoSection cards={whatWeDoCards} />
+        </SectionReveal>
+        <SectionReveal>
+          <CommunitySection
+            testimonials={testimonials}
+            tweets={tweets}
+            carouselImages={carouselImages}
+            communityMembers={communityMembers}
+            joinConfig={{
+              title: siteConfig.join_title,
+              body: siteConfig.join_body,
+              perks: siteConfig.join_perks
+                ? JSON.parse(siteConfig.join_perks)
+                : [],
+              twitterUrl: siteConfig.twitter_url,
+              telegramUrl: siteConfig.telegram_url,
+            }}
           />
-          <PartnersSection partners={partners} />
-        </div>
-        <WhatWeDoSection cards={whatWeDoCards} />
-        <CommunitySection
-          testimonials={testimonials}
-          tweets={tweets}
-          carouselImages={carouselImages}
-          communityMembers={communityMembers}
-          joinConfig={{
-            title: siteConfig.join_title,
-            body: siteConfig.join_body,
-            perks: siteConfig.join_perks
-              ? JSON.parse(siteConfig.join_perks)
-              : [],
-            twitterUrl: siteConfig.twitter_url,
-            telegramUrl: siteConfig.telegram_url,
-          }}
-        />
-        <EventsSection />
-        <FaqSection faqs={faqs} />
+        </SectionReveal>
+        <SectionReveal>
+          <EventsSection />
+        </SectionReveal>
+        <SectionReveal>
+          <FaqSection faqs={faqs} />
+        </SectionReveal>
       </PostHeroWithBeams>
     </main>
   );
