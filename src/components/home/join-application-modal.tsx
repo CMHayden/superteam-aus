@@ -310,7 +310,8 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
             Community onboarding
           </p>
           <h3 className="mt-3 font-display text-2xl font-black leading-tight text-text-primary">
-            Join the <span className="text-brand-yellow">squad</span>
+            <span className="text-brand-green">Join the</span>{" "}
+            <span className="text-brand-yellow">squad</span>
           </h3>
           <p className="mt-3 text-sm leading-relaxed text-text-secondary">
             Tell us about yourself and we&apos;ll match you with the right opportunities in the ecosystem.
@@ -342,6 +343,14 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
                 </div>
               );
             })}
+          </div>
+          <div className="mt-auto border-t border-border-yellow pt-5">
+            <a
+              href="/portal/login"
+              className="mt-2 inline-flex items-center rounded-lg bg-brand-green px-5 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90"
+            >
+              Log in
+            </a>
           </div>
         </aside>
 

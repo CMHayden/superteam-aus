@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { CommunityMembersCarousel } from "@/components/home/community-members-carousel";
 import { CommunityTweetsFeed } from "@/components/home/community-tweets-feed";
@@ -161,19 +162,21 @@ function CommunityMembersScroller({ members }: { members: CommunityMember[] }) {
                 ))}
               </div>
             </div>
-            <div>
-              <p className="font-body text-xs font-bold uppercase tracking-wide text-text-muted">
-                Ecosystem contributions
-              </p>
-              <ul className="mt-2 space-y-1.5">
-                {active.contributions.map((item) => (
-                  <li key={item} className="flex items-center gap-2 font-body text-sm text-text-secondary">
-                    <span className="size-1.5 rounded-full bg-brand-yellow" aria-hidden />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {(active.contributions ?? []).filter(Boolean).length > 0 ? (
+              <div>
+                <p className="font-body text-xs font-bold uppercase tracking-wide text-text-muted">
+                  Ecosystem contributions
+                </p>
+                <ul className="mt-2 space-y-1.5">
+                  {(active.contributions ?? []).filter(Boolean).map((item) => (
+                    <li key={item} className="flex items-center gap-2 font-body text-sm text-text-secondary">
+                      <span className="size-1.5 rounded-full bg-brand-yellow" aria-hidden />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <div className="flex items-center justify-between gap-3 pt-1">
               <a
                 href={active.twitter_url}
@@ -357,7 +360,7 @@ function JoinCard({ config, className }: { config: JoinConfig; className?: strin
             ))}
           </ul>
         </div>
-        <div className="md:mt-6 flex flex-col gap-3 mt-auto">
+        <div className="mt-8 flex flex-col gap-3 md:mt-6">
           <button
             type="button"
             onClick={() => setIsApplyModalOpen(true)}
@@ -445,7 +448,10 @@ export function CommunitySection({
 
           <div className="flex flex-col gap-4 md:col-start-2 md:row-start-2 md:h-full">
             <EventsSlideshow images={carouselImages} className="md:h-[58%] md:aspect-auto" />
-            <article className="relative cursor-pointer overflow-hidden rounded-2xl border border-brand-green/30 bg-surface-card p-5 transition-[transform,border-color,box-shadow] duration-300 hover:scale-[1.02] hover:border-border-yellowhi hover:shadow-[0_0_0_1px_rgb(249_215_28/0.24),0_0_26px_rgb(249_215_28/0.2),0_0_36px_rgb(27_138_61/0.18)] md:flex-1">
+            <Link
+              href="/members"
+              className="relative block cursor-pointer overflow-hidden rounded-2xl border border-brand-green/30 bg-surface-card p-5 transition-[transform,border-color,box-shadow] duration-300 hover:scale-[1.02] hover:border-border-yellowhi hover:shadow-[0_0_0_1px_rgb(249_215_28/0.24),0_0_26px_rgb(249_215_28/0.2),0_0_36px_rgb(27_138_61/0.18)] md:flex-1"
+            >
               <BackgroundBeams
                 colorScheme="green"
                 contrast="high"
@@ -456,7 +462,7 @@ export function CommunitySection({
                   Meet the community
                 </h3>
               </div>
-            </article>
+            </Link>
           </div>
 
           <article className="rounded-2xl border border-brand-green/30 bg-surface-card p-5 md:col-span-2 md:col-start-1 md:row-start-3">

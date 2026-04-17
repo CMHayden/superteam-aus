@@ -114,8 +114,8 @@ export async function POST(request: NextRequest) {
       .update({ approved: true, is_read: true })
       .eq("id", submissionId);
 
-    const origin = request.nextUrl.origin;
-    const portalUrl = `${origin}/portal/login`;
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://superteam-aus.vercel.app").replace(/\/+$/, "");
+    const portalUrl = `${siteUrl}/portal/login`;
 
     try {
       await sendEmail({

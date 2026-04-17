@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "luma.com", pathname: "/**" },
       { protocol: "https", hostname: "www.luma.com", pathname: "/**" },
       { protocol: "https", hostname: "i.pravatar.cc", pathname: "/**" },
+      // Supabase Storage public URLs (CMS uploads, testimonials, etc.)
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
     ],
   },
 };

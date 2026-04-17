@@ -3,12 +3,12 @@ import { SuperteamLogo } from "@/components/superteam-logo";
 import { getSiteConfig, getSocialLinks } from "@/lib/cms";
 
 const navLinks = [
-  { label: "Home", href: "#hero" },
+  { label: "Home", href: "/#hero" },
   { label: "Members", href: "/members" },
-  { label: "What we do", href: "#what-we-do-heading" },
-  { label: "Community", href: "#community-heading" },
-  { label: "Events", href: "#events-heading" },
-  { label: "FAQ", href: "#faq-heading" },
+  { label: "What we do", href: "/#what-we-do-heading" },
+  { label: "Community", href: "/#community-heading" },
+  { label: "Events", href: "/#events-heading" },
+  { label: "FAQ", href: "/#faq-heading" },
 ];
 
 export async function FooterSection() {

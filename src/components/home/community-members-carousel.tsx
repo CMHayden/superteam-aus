@@ -43,7 +43,7 @@ export function CommunityMembersCarousel({
         Testimonials
       </p>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
-        <div className="relative h-72 w-full md:h-[22rem]">
+        <div className="relative h-72 w-full shrink-0 md:h-[22rem]">
           <AnimatePresence>
             {testimonials.map((member, index) => {
               const isActive = index === active;
@@ -74,11 +74,6 @@ export function CommunityMembersCarousel({
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-surface-base/75 via-transparent to-transparent" />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgb(255_255_255/0.22),transparent_58%)]" />
-                    <div className="absolute bottom-5 left-5 rounded-lg border border-white/25 bg-surface-base/45 px-3 py-1.5 backdrop-blur-sm">
-                      <p className="font-body text-xs font-extrabold uppercase tracking-wider text-text-primary">
-                        Community Member
-                      </p>
-                    </div>
                   </div>
                 </motion.div>
               );
@@ -86,7 +81,7 @@ export function CommunityMembersCarousel({
           </AnimatePresence>
         </div>
 
-        <div className="flex flex-col justify-between py-1">
+        <div className="flex min-h-[22rem] flex-col justify-between py-1 md:min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={active}
@@ -94,13 +89,14 @@ export function CommunityMembersCarousel({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -16, opacity: 0 }}
               transition={{ duration: 0.24, ease: "easeInOut" }}
+              className="flex min-h-0 flex-1 flex-col md:block"
             >
               <h3 className="font-display text-3xl font-black text-text-primary">{activeMember.name}</h3>
               <p className="mt-1 font-body text-sm font-bold uppercase tracking-wide text-text-muted">
                 {activeMember.role}
               </p>
 
-              <motion.p className="mt-6 font-body text-lg leading-relaxed text-text-secondary">
+              <motion.p className="mt-6 h-[14rem] overflow-y-auto font-body text-lg leading-relaxed text-text-secondary md:h-auto md:min-h-0 md:overflow-visible">
                 {activeMember.quote.split(" ").map((word, index) => (
                   <motion.span
                     key={`${activeMember.name}-${index}`}
