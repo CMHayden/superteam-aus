@@ -3,42 +3,17 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 
-const partners = [
-  {
-    name: "Alchemy",
-    src: "/partners/alchemy.svg",
-    description: "Developer platform for building, scaling, and monitoring high-performance web3 apps.",
-    link: "https://www.alchemy.com/",
-  },
-  {
-    name: "Helius",
-    src: "/partners/helius.svg",
-    description: "Solana infrastructure and APIs powering wallets, analytics, and real-time blockchain apps.",
-    link: "https://www.helius.dev/",
-  },
-  {
-    name: "Jupiter",
-    src: "/partners/jupiter.svg",
-    description: "Best-price routing and liquidity aggregation that powers swaps across Solana markets.",
-    link: "https://jup.ag/",
-  },
-  {
-    name: "Raydium",
-    src: "/partners/raydium.svg",
-    description: "On-chain liquidity and trading venue enabling token discovery and capital-efficient markets.",
-    link: "https://raydium.io/",
-  },
-  {
-    name: "Solana",
-    src: "/partners/solana.svg",
-    description: "High-throughput blockchain ecosystem for consumer apps, payments, and global internet-scale products.",
-    link: "https://solana.com/",
-  },
-];
-
-const marqueePartners = [...partners, ...partners, ...partners, ...partners, ...partners, ...partners];
+type Partner = {
+  id: string;
+  name: string;
+  image_url: string;
+  description: string;
+  benefits?: string;
+  link: string;
+};
 
 function PartnerLogo({
   name,
@@ -66,10 +41,17 @@ function PartnerLogo({
   );
 }
 
-export function PartnersSection() {
+export function PartnersSection({ partners }: { partners: Partner[] }) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [activePartner, setActivePartner] = useState<(typeof partners)[number] | null>(null);
+  const [activePartner, setActivePartner] = useState<Partner | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  const marqueePartners = [...partners, ...partners, ...partners, ...partners, ...partners, ...partners];
+
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
 
   useOutsideClick(modalRef, () => setActivePartner(null));
 
@@ -95,57 +77,66 @@ export function PartnersSection() {
     };
   }, [activePartner]);
 
+  const partnerModal = activePartner && portalTarget ? createPortal(
+    <>
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[120] bg-black/45 backdrop-blur-[2px]"
+        />
+      </AnimatePresence>
+      <div className="fixed inset-0 z-[120] grid place-items-center px-4">
+        <motion.div
+          ref={modalRef}
+          className="w-full max-w-lg rounded-3xl border border-brand-green/30 bg-surface-card p-6 shadow-2xl"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <p className="font-mono text-xs font-extrabold uppercase tracking-widest text-brand-yellow">
+              Partner
+            </p>
+            <button
+              type="button"
+              onClick={() => setActivePartner(null)}
+              className="rounded-full border border-border-yellowmd px-3 py-1.5 font-body text-xs font-bold text-text-secondary transition-colors hover:border-border-yellowhi hover:text-text-primary"
+            >
+              Close
+            </button>
+          </div>
+          <Image
+            src={activePartner.image_url}
+            alt={activePartner.name}
+            width={180}
+            height={52}
+            className="mt-5 h-8 w-auto object-contain"
+          />
+          <p className="mt-4 font-body text-sm leading-relaxed text-text-secondary">{activePartner.description}</p>
+          {activePartner.benefits ? (
+            <div className="mt-4">
+              <p className="font-mono text-xs font-extrabold uppercase tracking-widest text-brand-green">
+                Benefits
+              </p>
+              <p className="mt-1 font-body text-sm leading-relaxed text-text-secondary">{activePartner.benefits}</p>
+            </div>
+          ) : null}
+          <a
+            href={activePartner.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex items-center rounded-full bg-brand-yellow px-4 py-2 font-body text-sm font-bold text-on-yellow transition-colors hover:bg-brand-gold"
+          >
+            Visit partner
+          </a>
+        </motion.div>
+      </div>
+    </>,
+    portalTarget,
+  ) : null;
+
   return (
     <div aria-label="Partners" className="relative border-t border-brand-green/35 px-4 pb-8 pt-6 md:px-8 md:pb-10">
-      <AnimatePresence>
-        {activePartner ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]"
-          />
-        ) : null}
-      </AnimatePresence>
-      <AnimatePresence>
-        {activePartner ? (
-          <div className="fixed inset-0 z-50 grid place-items-center px-4">
-            <motion.div
-              ref={modalRef}
-              className="w-full max-w-lg rounded-3xl border border-brand-green/30 bg-surface-card p-6 shadow-2xl"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <p className="font-mono text-xs font-extrabold uppercase tracking-widest text-brand-yellow">
-                  Partner
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setActivePartner(null)}
-                  className="rounded-full border border-border-yellowmd px-3 py-1.5 font-body text-xs font-bold text-text-secondary transition-colors hover:border-border-yellowhi hover:text-text-primary"
-                >
-                  Close
-                </button>
-              </div>
-              <Image
-                src={activePartner.src}
-                alt={activePartner.name}
-                width={180}
-                height={52}
-                className="mt-5 h-8 w-auto object-contain"
-              />
-              <p className="mt-4 font-body text-sm leading-relaxed text-text-secondary">{activePartner.description}</p>
-              <a
-                href={activePartner.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-flex items-center rounded-full bg-brand-yellow px-4 py-2 font-body text-sm font-bold text-on-yellow transition-colors hover:bg-brand-gold"
-              >
-                Visit partner
-              </a>
-            </motion.div>
-          </div>
-        ) : null}
-      </AnimatePresence>
+      {partnerModal}
       <div
         className="partners-marquee-hover group relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
       >
@@ -155,7 +146,7 @@ export function PartnersSection() {
               <PartnerLogo
                 key={partner.name}
                 name={partner.name}
-                src={partner.src}
+                src={partner.image_url}
                 onClick={() => setActivePartner(partner)}
               />
             ))}
@@ -165,9 +156,7 @@ export function PartnersSection() {
             className="partners-marquee-track flex w-max gap-5 py-1"
             style={
               activePartner
-                ? {
-                    animationPlayState: "paused",
-                  }
+                ? { animationPlayState: "paused" }
                 : undefined
             }
           >
@@ -175,7 +164,7 @@ export function PartnersSection() {
               <PartnerLogo
                 key={`${partner.name}-${index}`}
                 name={partner.name}
-                src={partner.src}
+                src={partner.image_url}
                 onClick={() => setActivePartner(partner)}
               />
             ))}

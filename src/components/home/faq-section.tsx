@@ -3,30 +3,13 @@
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
-const faqs = [
-  {
-    question: "What is Superteam Australia",
-    answer:
-      "Superteam Australia is a community-led network helping builders, founders, and operators start and scale on Solana through programs, events, and ecosystem support.",
-  },
-  {
-    question: "How to get involved",
-    answer:
-      "Join our community channels, attend local meetups, take part in open calls, and contribute through bounties, projects, or events.",
-  },
-  {
-    question: "What opportunities are available",
-    answer:
-      "Opportunities include grants, bounties, hackathons, jobs, collaborations, and introductions to teams, mentors, and ecosystem partners.",
-  },
-  {
-    question: "How institutions can engage",
-    answer:
-      "Institutions can engage through ecosystem briefings, pilot programs, partner events, and direct collaboration with Australian builders and operators.",
-  },
-];
+type FaqItem = {
+  id: string;
+  question: string;
+  answer: string;
+};
 
-export function FaqSection() {
+export function FaqSection({ faqs }: { faqs: FaqItem[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const faqCardRef = useRef<HTMLDivElement | null>(null);
 
@@ -56,7 +39,7 @@ export function FaqSection() {
             const isOpen = openIndex === index;
             return (
               <div
-                key={item.question}
+                key={item.id}
                 className={cn(
                   "border-brand-green/35",
                   index < faqs.length - 1 && "border-b",
@@ -118,4 +101,3 @@ export function FaqSection() {
     </section>
   );
 }
-

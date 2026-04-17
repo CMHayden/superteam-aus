@@ -4,63 +4,38 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
-type CommunityMember = {
+type Testimonial = {
+  id: string;
   name: string;
-  title: string;
+  role: string;
   quote: string;
-  src: string;
+  image_url: string;
 };
-
-const members: CommunityMember[] = [
-  {
-    name: "Hayden Clarke",
-    title: "Founder, Community Lead",
-    quote:
-      "Superteam AU connected me with builders who actually execute. We went from loose ideas to real products and meaningful momentum.",
-    src: "https://i.pravatar.cc/800?img=12",
-  },
-  {
-    name: "Priya Raman",
-    title: "Full-Stack Builder",
-    quote:
-      "The weekly sessions gave me accountability and honest feedback. I shipped faster in one month than I did in the previous quarter.",
-    src: "https://i.pravatar.cc/800?img=47",
-  },
-  {
-    name: "Luca Tran",
-    title: "Ecosystem Contributor",
-    quote:
-      "I came for the meetups, stayed for the people, and ended up contributing to live projects that turned into paid opportunities.",
-    src: "https://i.pravatar.cc/800?img=53",
-  },
-  {
-    name: "Mia Collins",
-    title: "Product Designer",
-    quote:
-      "Superteam made collaboration easy across design, dev, and growth. Everything moved quicker because I wasn't building alone.",
-    src: "https://i.pravatar.cc/800?img=32",
-  },
-];
 
 const rotatePresets = [-7, -4, 3, 6];
 
-export function CommunityMembersCarousel({ autoplay = true }: { autoplay?: boolean }) {
+export function CommunityMembersCarousel({
+  autoplay = true,
+  testimonials,
+}: {
+  autoplay?: boolean;
+  testimonials: Testimonial[];
+}) {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    if (!autoplay) {
-      return;
-    }
+    if (!autoplay || testimonials.length === 0) return;
     const interval = window.setInterval(() => {
-      setActive((prev) => (prev + 1) % members.length);
+      setActive((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => window.clearInterval(interval);
-  }, [autoplay]);
+  }, [autoplay, testimonials.length]);
 
-  const handlePrev = () => setActive((prev) => (prev - 1 + members.length) % members.length);
-  const handleNext = () => setActive((prev) => (prev + 1) % members.length);
+  const handlePrev = () => setActive((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  const handleNext = () => setActive((prev) => (prev + 1) % testimonials.length);
 
-  const activeMember = members[active];
+  if (testimonials.length === 0) return null;
+  const activeMember = testimonials[active];
 
   return (
     <div className="mx-auto w-full max-w-7xl rounded-2xl border border-brand-green/30 bg-surface-card p-5 md:p-8">
@@ -70,7 +45,7 @@ export function CommunityMembersCarousel({ autoplay = true }: { autoplay?: boole
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
         <div className="relative h-72 w-full md:h-[22rem]">
           <AnimatePresence>
-            {members.map((member, index) => {
+            {testimonials.map((member, index) => {
               const isActive = index === active;
               return (
                 <motion.div
@@ -81,18 +56,16 @@ export function CommunityMembersCarousel({ autoplay = true }: { autoplay?: boole
                     scale: isActive ? 1 : 0.95,
                     z: isActive ? 0 : -100,
                     rotate: isActive ? 0 : rotatePresets[index % 4],
-                    zIndex: isActive ? 40 : members.length + 2 - index,
+                    zIndex: isActive ? 40 : testimonials.length + 2 - index,
                     y: isActive ? [0, -10, 0] : 0,
                   }}
                   exit={{ opacity: 0, scale: 0.9, z: 100, rotate: -rotatePresets[index % 4] }}
                   transition={{ duration: 0.42, ease: "easeInOut" }}
                   className="absolute inset-0 origin-bottom"
                 >
-                  <div
-                    className="relative h-full w-full overflow-hidden rounded-3xl border border-border-yellowmd"
-                  >
+                  <div className="relative h-full w-full overflow-hidden rounded-3xl border border-border-yellowmd">
                     <Image
-                      src={member.src}
+                      src={member.image_url}
                       alt={member.name}
                       fill
                       sizes="(max-width: 768px) 100vw, 560px"
@@ -124,7 +97,7 @@ export function CommunityMembersCarousel({ autoplay = true }: { autoplay?: boole
             >
               <h3 className="font-display text-3xl font-black text-text-primary">{activeMember.name}</h3>
               <p className="mt-1 font-body text-sm font-bold uppercase tracking-wide text-text-muted">
-                {activeMember.title}
+                {activeMember.role}
               </p>
 
               <motion.p className="mt-6 font-body text-lg leading-relaxed text-text-secondary">

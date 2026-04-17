@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SuperteamLogo } from "@/components/superteam-logo";
+import { getSiteConfig, getSocialLinks } from "@/lib/cms";
 
 const navLinks = [
   { label: "Home", href: "#hero" },
@@ -10,13 +11,16 @@ const navLinks = [
   { label: "FAQ", href: "#faq-heading" },
 ];
 
-const socialLinks = [
-  { label: "Twitter / X", href: "https://twitter.com/SuperteamAU" },
-  { label: "Telegram", href: "https://t.me/SuperteamAU" },
-  { label: "Discord", href: "https://discord.gg/superteam" },
-];
+export async function FooterSection() {
+  const [siteConfig, socialLinks] = await Promise.all([
+    getSiteConfig("footer_description"),
+    getSocialLinks(),
+  ]);
 
-export function FooterSection() {
+  const description =
+    siteConfig.footer_description ||
+    "A high-signal community helping Australian builders, founders, creatives, and operators thrive in the Solana ecosystem.";
+
   return (
     <footer className="relative overflow-hidden border-t border-brand-green/35 bg-surface-nav px-4 py-12 md:px-8 md:py-14">
       <div className="mx-auto grid w-full max-w-7xl gap-10 md:grid-cols-12">
@@ -25,8 +29,7 @@ export function FooterSection() {
             <SuperteamLogo className="inline-flex items-center gap-2.5" />
           </div>
           <p className="mt-4 max-w-md font-body text-sm leading-relaxed text-text-secondary">
-            A high-signal community helping Australian builders, founders, creatives, and operators thrive in the
-            Solana ecosystem.
+            {description}
           </p>
           <a
             href="https://superteam.fun"
@@ -58,13 +61,13 @@ export function FooterSection() {
           <div className="flex flex-col gap-2">
             {socialLinks.map((item) => (
               <a
-                key={item.label}
-                href={item.href}
+                key={item.id}
+                href={item.url}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-between rounded-lg border border-border-yellow bg-surface-card/70 px-3 py-2 font-body text-sm font-bold text-text-secondary transition-colors hover:border-border-yellowhi hover:text-text-primary"
               >
-                <span>{item.label}</span>
+                <span>{item.platform}</span>
                 <span aria-hidden>↗</span>
               </a>
             ))}

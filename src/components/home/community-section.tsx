@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { CommunityMembersCarousel } from "@/components/home/community-members-carousel";
@@ -11,94 +12,46 @@ import { useOutsideClick } from "@/hooks/use-outside-click";
 import { OPEN_JOIN_APPLICATION_MODAL_EVENT } from "@/lib/join-application-modal";
 import { cn } from "@/lib/utils";
 
-const communityMembers = [
-  {
-    name: "Hayden Ross",
-    title: "Founder",
-    role: "Builder Lead",
-    location: "Sydney, NSW",
-    avatar: "https://i.pravatar.cc/160?img=12",
-    bio:
-      "Hayden leads founder onboarding and helps new builders plug into projects quickly. He runs weekly founder circles focused on shipping and accountability.",
-    skills: ["BizDev", "Content", "Community", "Ops"],
-    contributions: ["Hackathon wins", "Projects built", "DAO contributions"],
-    twitterUrl: "https://x.com/SuperteamAU",
-    profileLink: "https://superteamau.com/join",
-  },
-  {
-    name: "Priya Menon",
-    title: "Community Ops",
-    role: "Operations Manager",
-    location: "Brisbane, QLD",
-    avatar: "https://i.pravatar.cc/160?img=5",
-    bio:
-      "Priya coordinates events and keeps member support running smoothly. She is the go-to for introductions, role matching, and collaboration opportunities.",
-    skills: ["Ops", "Content", "BizDev"],
-    contributions: ["Projects built", "Grants received", "Bounties completed"],
-    twitterUrl: "https://x.com/SuperteamAU",
-    profileLink: "https://superteamau.com/join",
-  },
-  {
-    name: "Luca Tan",
-    title: "Product Builder",
-    role: "Full-stack Dev",
-    location: "Melbourne, VIC",
-    avatar: "https://i.pravatar.cc/160?img=11",
-    bio:
-      "Luca prototypes product ideas with teams across the network. His focus is taking ideas from concept to clickable product in days, not months.",
-    skills: ["Dev", "Design", "Product"],
-    contributions: ["Hackathon wins", "Projects built", "Bounties completed"],
-    twitterUrl: "https://x.com/SuperteamAU",
-    profileLink: "https://superteamau.com/join",
-  },
-  {
-    name: "Mia Chen",
-    title: "Designer",
-    role: "Product Design",
-    location: "Perth, WA",
-    avatar: "https://i.pravatar.cc/160?img=32",
-    bio:
-      "Mia helps teams with brand systems and product UX. She mentors early designers in the community and runs regular design critiques.",
-    skills: ["Design", "Content", "Brand"],
-    contributions: ["Projects built", "DAO contributions"],
-    twitterUrl: "https://x.com/SuperteamAU",
-    profileLink: "https://superteamau.com/join",
-  },
-  {
-    name: "Nate Walker",
-    title: "Growth Lead",
-    role: "Growth Strategist",
-    location: "Adelaide, SA",
-    avatar: "https://i.pravatar.cc/160?img=51",
-    bio:
-      "Nate works on growth experiments for ecosystem projects. He shares acquisition playbooks and supports teams with distribution and messaging.",
-    skills: ["BizDev", "Content", "Growth"],
-    contributions: ["Projects built", "Grants received", "DAO contributions"],
-    twitterUrl: "https://x.com/SuperteamAU",
-    profileLink: "https://superteamau.com/join",
-  },
-  {
-    name: "Sora Kim",
-    title: "Engineer",
-    role: "Infrastructure Dev",
-    location: "Canberra, ACT",
-    avatar: "https://i.pravatar.cc/160?img=47",
-    bio:
-      "Sora builds developer tooling and infrastructure for community products. She also contributes to technical workshops and office-hour sessions.",
-    skills: ["Dev", "Infra", "Content"],
-    contributions: ["Hackathon wins", "Bounties completed", "Projects built"],
-    twitterUrl: "https://x.com/SuperteamAU",
-    profileLink: "https://superteamau.com/join",
-  },
-];
+type Testimonial = {
+  id: string;
+  name: string;
+  role: string;
+  quote: string;
+  image_url: string;
+};
 
-const eventImages = ["/events/1.jpg", "/events/2.jpg", "/events/3.jpg", "/events/4.jpg"];
+type TweetData = {
+  id: string;
+  tweet_id: string;
+};
 
-const joinPerks = [
-  "Weekly builder calls",
-  "Project support & feedback",
-  "High-signal community",
-];
+type CarouselImage = {
+  id: string;
+  image_url: string;
+  alt_text?: string;
+};
+
+type CommunityMember = {
+  id: string;
+  name: string;
+  title: string;
+  role: string;
+  location: string;
+  avatar_url: string;
+  bio: string;
+  skills: string[];
+  contributions: string[];
+  twitter_url: string;
+  profile_link: string;
+};
+
+type JoinConfig = {
+  title?: string;
+  body?: string;
+  perks?: string[];
+  twitterUrl?: string;
+  telegramUrl?: string;
+};
 
 function TwitterIcon({ className }: { className?: string }) {
   return (
@@ -116,26 +69,25 @@ function TelegramIcon({ className }: { className?: string }) {
   );
 }
 
-type CommunityMember = (typeof communityMembers)[number];
-
-function CommunityMembersScroller() {
-  const marqueeItems = [...communityMembers, ...communityMembers, ...communityMembers, ...communityMembers];
+function CommunityMembersScroller({ members }: { members: CommunityMember[] }) {
+  const marqueeItems = [...members, ...members, ...members, ...members];
   const [active, setActive] = useState<CommunityMember | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
 
   useOutsideClick(cardRef, () => setActive(null));
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setActive(null);
-      }
+      if (event.key === "Escape") setActive(null);
     };
-
     document.addEventListener("keydown", onKeyDown);
     document.body.style.overflow = active ? "hidden" : "auto";
-
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = "auto";
@@ -143,119 +95,112 @@ function CommunityMembersScroller() {
   }, [active]);
 
   useEffect(() => {
-    // Opening the modal can interrupt pointer leave events on the marquee.
-    // Resetting hover state prevents the track from staying paused/invisible.
     setIsHovered(false);
   }, [active]);
 
-  return (
+  const memberModal = active && portalTarget ? createPortal(
     <>
       <AnimatePresence>
-        {active ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]"
-          />
-        ) : null}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[120] bg-black/45 backdrop-blur-[2px]"
+        />
       </AnimatePresence>
-      <AnimatePresence>
-        {active ? (
-          <div className="fixed inset-0 z-50 grid place-items-center px-4 py-6">
-            <motion.div
-              ref={cardRef}
-              initial={{ opacity: 0, scale: 0.95, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              transition={{ duration: 0.2 }}
-              className="w-full max-w-xl overflow-hidden rounded-3xl border border-border-yellowmd bg-surface-card shadow-2xl"
-            >
-              <div className="space-y-4 p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-4">
-                    <img
-                      src={active.avatar}
-                      alt={active.name}
-                      className="h-20 w-20 rounded-lg object-cover"
-                    />
-                    <div className="space-y-1">
-                      <h3
-                        className="font-display text-2xl font-black text-text-primary"
-                      >
-                        {active.name}
-                      </h3>
-                      <p
-                        className="font-body text-sm font-bold text-text-secondary"
-                      >
-                        {active.title}
-                      </p>
-                      <p className="font-body text-sm text-text-secondary">
-                        {active.role}
-                        <span className="px-1 text-text-muted">•</span>
-                        <span className="text-text-muted">{active.location}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setActive(null)}
-                    className="rounded-full border border-border-yellowmd px-3 py-1.5 font-body text-xs font-bold text-text-secondary transition-colors hover:border-border-yellowhi hover:text-text-primary"
-                  >
-                    Close
-                  </button>
-                </div>
-                <p className="font-body text-sm leading-relaxed text-text-secondary">{active.bio}</p>
-                <div>
-                  <p className="font-body text-xs font-bold uppercase tracking-wide text-text-muted">Skill tags</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {active.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="rounded-full border border-border-yellowmd bg-surface-base px-2.5 py-1 font-body text-xs font-bold text-text-secondary"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="font-body text-xs font-bold uppercase tracking-wide text-text-muted">
-                    Ecosystem contributions
+      <div className="fixed inset-0 z-[120] grid place-items-center px-4 py-6">
+        <motion.div
+          ref={cardRef}
+          initial={{ opacity: 0, scale: 0.95, y: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 12 }}
+          transition={{ duration: 0.2 }}
+          className="w-full max-w-xl overflow-hidden rounded-3xl border border-border-yellowmd bg-surface-card shadow-2xl"
+        >
+          <div className="space-y-4 p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-4">
+                <img
+                  src={active.avatar_url}
+                  alt={active.name}
+                  className="h-20 w-20 rounded-lg object-cover"
+                />
+                <div className="space-y-1">
+                  <h3 className="font-display text-2xl font-black text-text-primary">
+                    {active.name}
+                  </h3>
+                  <p className="font-body text-sm font-bold text-text-secondary">
+                    {active.title}
                   </p>
-                  <ul className="mt-2 space-y-1.5">
-                    {active.contributions.map((item) => (
-                      <li key={item} className="flex items-center gap-2 font-body text-sm text-text-secondary">
-                        <span className="size-1.5 rounded-full bg-brand-yellow" aria-hidden />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="flex items-center justify-between gap-3 pt-1">
-                  <a
-                    href={active.twitterUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 font-body text-sm font-bold text-text-primary underline decoration-border-yellowmd underline-offset-4 transition-colors hover:text-brand-yellow"
-                  >
-                    <TwitterIcon className="size-3.5" />
-                    Twitter / X
-                  </a>
-                  <a
-                    href={active.profileLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center rounded-full bg-brand-yellow px-4 py-2 font-body text-sm font-bold text-on-yellow transition-colors hover:bg-brand-gold"
-                  >
-                    Visit full profile
-                  </a>
+                  <p className="font-body text-sm text-text-secondary">
+                    {active.role}
+                    <span className="px-1 text-text-muted">•</span>
+                    <span className="text-text-muted">{active.location}</span>
+                  </p>
                 </div>
               </div>
-            </motion.div>
+              <button
+                type="button"
+                onClick={() => setActive(null)}
+                className="rounded-full border border-border-yellowmd px-3 py-1.5 font-body text-xs font-bold text-text-secondary transition-colors hover:border-border-yellowhi hover:text-text-primary"
+              >
+                Close
+              </button>
+            </div>
+            <p className="font-body text-sm leading-relaxed text-text-secondary">{active.bio}</p>
+            <div>
+              <p className="font-body text-xs font-bold uppercase tracking-wide text-text-muted">Skill tags</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {active.skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="rounded-full border border-border-yellowmd bg-surface-base px-2.5 py-1 font-body text-xs font-bold text-text-secondary"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="font-body text-xs font-bold uppercase tracking-wide text-text-muted">
+                Ecosystem contributions
+              </p>
+              <ul className="mt-2 space-y-1.5">
+                {active.contributions.map((item) => (
+                  <li key={item} className="flex items-center gap-2 font-body text-sm text-text-secondary">
+                    <span className="size-1.5 rounded-full bg-brand-yellow" aria-hidden />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <a
+                href={active.twitter_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-body text-sm font-bold text-text-primary underline decoration-border-yellowmd underline-offset-4 transition-colors hover:text-brand-yellow"
+              >
+                <TwitterIcon className="size-3.5" />
+                Twitter / X
+              </a>
+              <a
+                href={`/members/${active.profile_link}`}
+                className="inline-flex items-center rounded-full bg-brand-yellow px-4 py-2 font-body text-sm font-bold text-on-yellow transition-colors hover:bg-brand-gold"
+              >
+                Visit full profile
+              </a>
+            </div>
           </div>
-        ) : null}
-      </AnimatePresence>
+        </motion.div>
+      </div>
+    </>,
+    portalTarget,
+  ) : null;
+
+  return (
+    <>
+      {memberModal}
       <div
         className="group relative overflow-hidden bg-surface-card/40 p-1 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
         onMouseEnter={() => setIsHovered(true)}
@@ -275,7 +220,7 @@ function CommunityMembersScroller() {
               className="flex h-12 min-w-[210px] cursor-pointer items-center gap-3 rounded-lg border border-border-yellowmd bg-surface-card/40 px-3 text-left transition-[border-color,box-shadow,background-color] duration-200 hover:border-border-yellowhi hover:bg-surface-card/60 hover:shadow-[0_0_0_1px_rgb(249_215_28/0.28),0_0_18px_rgb(249_215_28/0.18)]"
             >
               <img
-                src={member.avatar}
+                src={member.avatar_url}
                 alt={member.name}
                 className="h-8 w-8 shrink-0 rounded-md object-cover"
               />
@@ -295,16 +240,18 @@ function CommunityMembersScroller() {
   );
 }
 
-function EventsSlideshow({ className }: { className?: string }) {
+function EventsSlideshow({ images, className }: { images: CarouselImage[]; className?: string }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
+    if (images.length === 0) return;
     const interval = window.setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % eventImages.length);
+      setActiveIndex((prev) => (prev + 1) % images.length);
     }, 2800);
-
     return () => window.clearInterval(interval);
-  }, []);
+  }, [images.length]);
+
+  if (images.length === 0) return null;
 
   return (
     <div
@@ -313,11 +260,11 @@ function EventsSlideshow({ className }: { className?: string }) {
         className,
       )}
     >
-      {eventImages.map((src, index) => (
+      {images.map((img, index) => (
         <Image
-          key={src}
-          src={src}
-          alt={`Community event ${index + 1}`}
+          key={img.id}
+          src={img.image_url}
+          alt={img.alt_text || `Community event ${index + 1}`}
           fill
           sizes="(max-width: 768px) 100vw, 320px"
           className={`object-cover transition-opacity duration-700 ${index === activeIndex ? "opacity-100" : "opacity-0"}`}
@@ -328,27 +275,29 @@ function EventsSlideshow({ className }: { className?: string }) {
   );
 }
 
-function JoinCard({ className }: { className?: string }) {
+function JoinCard({ config, className }: { config: JoinConfig; className?: string }) {
   const pointerRef = useRef<HTMLDivElement>(null);
   const currentRef = useRef({ x: 50, y: 50 });
   const targetRef = useRef({ x: 50, y: 50 });
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
+  const title = config.title || "Build with us.";
+  const body = config.body || "If you're an Aussie builder, founder, or web3 enjoyoor you're in the right place.";
+  const perks = config.perks || ["Weekly builder calls", "Project support & feedback", "High-signal community"];
+  const twitterUrl = config.twitterUrl || "https://twitter.com/SuperteamAU";
+  const telegramUrl = config.telegramUrl || "https://t.me/SuperteamAU";
+
   useEffect(() => {
     let frameId = 0;
-
     const animate = () => {
       currentRef.current.x += (targetRef.current.x - currentRef.current.x) * 0.12;
       currentRef.current.y += (targetRef.current.y - currentRef.current.y) * 0.12;
-
       if (pointerRef.current) {
         pointerRef.current.style.left = `${currentRef.current.x}%`;
         pointerRef.current.style.top = `${currentRef.current.y}%`;
       }
-
       frameId = window.requestAnimationFrame(animate);
     };
-
     frameId = window.requestAnimationFrame(animate);
     return () => window.cancelAnimationFrame(frameId);
   }, []);
@@ -356,7 +305,6 @@ function JoinCard({ className }: { className?: string }) {
   useEffect(() => {
     const openModal = () => setIsApplyModalOpen(true);
     window.addEventListener(OPEN_JOIN_APPLICATION_MODAL_EVENT, openModal);
-
     return () => {
       window.removeEventListener(OPEN_JOIN_APPLICATION_MODAL_EVENT, openModal);
     };
@@ -388,25 +336,22 @@ function JoinCard({ className }: { className?: string }) {
           style={{ left: "50%", top: "50%" }}
         />
       </div>
-        <div className="relative z-10 flex min-h-0 flex-col">
+      <div className="relative z-10 flex min-h-0 flex-col">
         <div>
           <p className="font-body text-sm font-bold uppercase tracking-wide text-brand-yellow">Join</p>
           <h3 className="mt-1 font-display text-3xl font-black leading-tight text-text-primary">
-            Build with us.
+            {title}
           </h3>
           <p className="mt-4 font-body text-base leading-relaxed text-text-secondary md:text-lg">
-            If you&apos;re an Aussie builder, founder, or web3 enjoyoor you&apos;re in the right place.
+            {body}
           </p>
           <ul className="mt-3 space-y-2">
-            {joinPerks.map((label) => (
+            {perks.map((label) => (
               <li
                 key={label}
                 className="flex items-start gap-3 font-body text-base leading-relaxed text-text-secondary"
               >
-                <span
-                  className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-yellow"
-                  aria-hidden
-                />
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-yellow" aria-hidden />
                 {label}
               </li>
             ))}
@@ -427,7 +372,7 @@ function JoinCard({ className }: { className?: string }) {
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <a
-              href="https://twitter.com/SuperteamAU"
+              href={twitterUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-border-yellowmd bg-surface-base/55 px-4 py-2.5 font-body text-sm font-bold text-text-primary backdrop-blur-sm transition-colors hover:border-border-yellowhi hover:bg-surface-hover sm:min-w-0"
@@ -436,7 +381,7 @@ function JoinCard({ className }: { className?: string }) {
               Twitter
             </a>
             <a
-              href="https://t.me/SuperteamAU"
+              href={telegramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-border-yellowmd bg-surface-base/55 px-4 py-2.5 font-body text-sm font-bold text-text-primary backdrop-blur-sm transition-colors hover:border-border-yellowhi hover:bg-surface-hover sm:min-w-0"
@@ -452,7 +397,19 @@ function JoinCard({ className }: { className?: string }) {
   );
 }
 
-export function CommunitySection() {
+export function CommunitySection({
+  testimonials,
+  tweets,
+  carouselImages,
+  communityMembers,
+  joinConfig,
+}: {
+  testimonials: Testimonial[];
+  tweets: TweetData[];
+  carouselImages: CarouselImage[];
+  communityMembers: CommunityMember[];
+  joinConfig: JoinConfig;
+}) {
   return (
     <section
       aria-labelledby="community-heading"
@@ -476,22 +433,18 @@ export function CommunitySection() {
           data-beam-collision-target
           className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-start"
         >
-          {/* Row 1: testimonials (cols 1–2) */}
           <article className="w-full md:col-span-2 md:col-start-1 md:row-start-1">
-            <CommunityMembersCarousel autoplay />
+            <CommunityMembersCarousel autoplay testimonials={testimonials} />
           </article>
 
-          {/* Rows 1–3: tweets — spans all rows; clips + scrolls inside */}
           <article className="flex min-h-[32rem] w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-brand-green/30 bg-surface-card p-5 md:col-start-3 md:row-span-3 md:row-start-1 md:h-full md:min-h-0 md:self-stretch">
-            <CommunityTweetsFeed />
+            <CommunityTweetsFeed tweets={tweets} />
           </article>
 
-          {/* Row 2 col 1: join */}
-          <JoinCard className="w-full md:col-start-1 md:row-start-2" />
+          <JoinCard config={joinConfig} className="w-full md:col-start-1 md:row-start-2" />
 
-          {/* Row 2 col 2: events photo + "meet all" CTA stacked */}
           <div className="flex flex-col gap-4 md:col-start-2 md:row-start-2 md:h-full">
-            <EventsSlideshow className="md:h-[58%] md:aspect-auto" />
+            <EventsSlideshow images={carouselImages} className="md:h-[58%] md:aspect-auto" />
             <article className="relative cursor-pointer overflow-hidden rounded-2xl border border-brand-green/30 bg-surface-card p-5 transition-[transform,border-color,box-shadow] duration-300 hover:scale-[1.02] hover:border-border-yellowhi hover:shadow-[0_0_0_1px_rgb(249_215_28/0.24),0_0_26px_rgb(249_215_28/0.2),0_0_36px_rgb(27_138_61/0.18)] md:flex-1">
               <BackgroundBeams
                 colorScheme="green"
@@ -506,13 +459,12 @@ export function CommunitySection() {
             </article>
           </div>
 
-          {/* Row 3 cols 1–2: scrolling members marquee */}
           <article className="rounded-2xl border border-brand-green/30 bg-surface-card p-5 md:col-span-2 md:col-start-1 md:row-start-3">
             <p className="font-mono text-xs font-extrabold uppercase tracking-widest text-brand-yellow">
               Meet the aussies
             </p>
             <div className="mt-4">
-              <CommunityMembersScroller />
+              <CommunityMembersScroller members={communityMembers} />
             </div>
           </article>
         </div>

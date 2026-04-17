@@ -9,64 +9,24 @@ import {
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 
-type MissionCardItem = {
-  title: string;
-  icon: IconDefinition;
-  bullets: [string, string];
+const iconMap: Record<string, IconDefinition> = {
+  rocket: faRocket,
+  "chart-line": faChartLine,
+  signal: faSignal,
+  users: faUsers,
+  globe: faGlobe,
+  landmark: faLandmark,
 };
 
-const missionCards: MissionCardItem[] = [
-  {
-    title: "Builder & Founder Support",
-    icon: faRocket,
-    bullets: [
-      "Product and technical guidance to help teams ship",
-      "Support across hackathons, bounties and ecosystem programs",
-    ],
-  },
-  {
-    title: "Capital & Fundraising",
-    icon: faChartLine,
-    bullets: [
-      "Connecting capital with investable, scalable projects",
-      "Founder positioning and investor readiness support",
-    ],
-  },
-  {
-    title: "Growth & Distribution",
-    icon: faSignal,
-    bullets: [
-      "Go-to-market and growth strategy",
-      "Access to ecosystem distribution and community",
-    ],
-  },
-  {
-    title: "Talent & Hiring",
-    icon: faUsers,
-    bullets: [
-      "Connecting teams with developers, designers and operators",
-      "Team formation and scaling support",
-    ],
-  },
-  {
-    title: "Ecosystem & Community",
-    icon: faGlobe,
-    bullets: [
-      "Events, education and ecosystem coordination",
-      "Showcasing Australian builders on the global stage",
-    ],
-  },
-  {
-    title: "Institutional Engagement",
-    icon: faLandmark,
-    bullets: [
-      "Bridging builders with institutions and enterprises",
-      "Policymaker engagement and real-world deployments",
-    ],
-  },
-];
+type CardData = {
+  id: string;
+  title: string;
+  icon_name: string;
+  bullets: string[];
+};
 
-function MissionCard({ title, icon, bullets }: MissionCardItem) {
+function MissionCard({ title, icon_name, bullets }: CardData) {
+  const icon = iconMap[icon_name] || faRocket;
   return (
     <article className="group relative bg-surface-card p-8 transition-colors duration-200 hover:bg-surface-hover">
       <div
@@ -94,7 +54,7 @@ function MissionCard({ title, icon, bullets }: MissionCardItem) {
   );
 }
 
-export function WhatWeDoSection() {
+export function WhatWeDoSection({ cards }: { cards: CardData[] }) {
   return (
     <section
       className="relative overflow-hidden px-4 py-16 md:px-8 md:py-20"
@@ -117,8 +77,8 @@ export function WhatWeDoSection() {
           data-beam-collision-target
           className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-brand-green/45 bg-brand-green/35 md:grid-cols-3"
         >
-          {missionCards.map((card) => (
-            <MissionCard key={card.title} {...card} />
+          {cards.map((card) => (
+            <MissionCard key={card.id} {...card} />
           ))}
         </div>
       </div>

@@ -3,31 +3,24 @@
 import { Tweet, TweetSkeleton } from "react-tweet";
 import "react-tweet/theme.css";
 
-/** Status IDs from curated X links (Superteam AU + community). */
-const TWEET_IDS = [
-  "2039270701329506500",
-  "2043664233997779400",
-  "2043671462163427618",
-  "2043466440528064985",
-  "2043221189133488426",
-  "2042682763028107479",
-  "2042740500890030355",
-  "2042415352509002237",
-] as const;
+type TweetData = {
+  id: string;
+  tweet_id: string;
+};
 
-function TweetEmbedCard({ id }: { id: string }) {
+function TweetEmbedCard({ tweetId }: { tweetId: string }) {
   return (
     <div className="community-tweet-card shrink-0 overflow-hidden rounded-xl border border-border-yellowmd bg-surface-base/90 transition-colors hover:border-border-yellowhi">
       <Tweet
-        id={id}
-        apiUrl={`/api/tweet/${id}`}
+        id={tweetId}
+        apiUrl={`/api/tweet/${tweetId}`}
         fallback={<TweetSkeleton />}
       />
     </div>
   );
 }
 
-export function CommunityTweetsFeed() {
+export function CommunityTweetsFeed({ tweets }: { tweets: TweetData[] }) {
   return (
     <div className="community-tweets-feed flex h-full min-h-0 flex-col">
       <p className="shrink-0 font-body text-sm font-bold uppercase tracking-wide text-brand-yellow">
@@ -44,13 +37,13 @@ export function CommunityTweetsFeed() {
         />
         <div className="community-tweets-ticker flex w-full flex-col gap-3">
           <div className="flex flex-col gap-3">
-            {TWEET_IDS.map((id) => (
-              <TweetEmbedCard key={id} id={id} />
+            {tweets.map((t) => (
+              <TweetEmbedCard key={t.id} tweetId={t.tweet_id} />
             ))}
           </div>
           <div className="flex flex-col gap-3" aria-hidden>
-            {TWEET_IDS.map((id) => (
-              <TweetEmbedCard key={`${id}-dup`} id={id} />
+            {tweets.map((t) => (
+              <TweetEmbedCard key={`${t.id}-dup`} tweetId={t.tweet_id} />
             ))}
           </div>
         </div>

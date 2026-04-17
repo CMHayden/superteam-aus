@@ -1,11 +1,21 @@
 "use client";
 
 import clsx from "clsx";
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
-import { joinFormLocations, joinFormRoleNames, joinSkillOptionsByRole } from "@/lib/join-options";
-import { members } from "@/lib/members";
+
+type MemberRow = {
+  id: string;
+  name: string;
+  title: string;
+  role: string;
+  location: string;
+  avatar_url: string;
+  bio: string;
+  skills: string[];
+  twitter_url: string;
+  profile_link: string;
+};
 
 const filterPillClass =
   "rounded-full border px-3 py-1.5 text-left text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green";
@@ -72,14 +82,44 @@ function CollapsibleFilterGroup({
   );
 }
 
-export function MembersDirectory() {
+export function MembersDirectory({
+  members,
+}: {
+  members: MemberRow[];
+}) {
   const [query, setQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("All roles");
   const [selectedLocation, setSelectedLocation] = useState("All locations");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
-  const roleIsSelected = selectedRole !== "All roles";
-  const roleSkills = roleIsSelected ? (joinSkillOptionsByRole[selectedRole] ?? []) : [];
+  const roles = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of members) if (m.role) set.add(m.role);
+    return Array.from(set).sort();
+  }, [members]);
+
+  const locations = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of members) if (m.location) set.add(m.location);
+    return Array.from(set).sort();
+  }, [members]);
+
+  const allSkills = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of members) for (const s of m.skills ?? []) set.add(s);
+    return Array.from(set).sort();
+  }, [members]);
+
+  const roleSkills = useMemo(() => {
+    if (selectedRole === "All roles") return allSkills;
+    const set = new Set<string>();
+    for (const m of members) {
+      if (m.role === selectedRole) {
+        for (const s of m.skills ?? []) set.add(s);
+      }
+    }
+    return Array.from(set).sort();
+  }, [members, selectedRole, allSkills]);
 
   const filteredMembers = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -88,16 +128,16 @@ export function MembersDirectory() {
       const matchesSearch =
         normalized.length === 0 ||
         member.name.toLowerCase().includes(normalized) ||
-        member.twitterHandle.toLowerCase().includes(normalized);
+        (member.twitter_url ?? "").toLowerCase().includes(normalized);
 
       const matchesRole = selectedRole === "All roles" || member.role === selectedRole;
       const matchesLocation = selectedLocation === "All locations" || member.location === selectedLocation;
       const matchesSkills =
-        selectedSkills.length === 0 || selectedSkills.some((skill) => member.skills.includes(skill));
+        selectedSkills.length === 0 || selectedSkills.some((skill) => (member.skills ?? []).includes(skill));
 
       return matchesSearch && matchesRole && matchesLocation && matchesSkills;
     });
-  }, [query, selectedRole, selectedLocation, selectedSkills]);
+  }, [query, selectedRole, selectedLocation, selectedSkills, members]);
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((previous) =>
@@ -143,7 +183,7 @@ export function MembersDirectory() {
                 <FilterPill selected={selectedRole === "All roles"} onSelect={() => handleRoleChange("All roles")}>
                   All
                 </FilterPill>
-                {joinFormRoleNames.map((role) => (
+                {roles.map((role) => (
                   <FilterPill key={role} selected={selectedRole === role} onSelect={() => handleRoleChange(role)}>
                     {role}
                   </FilterPill>
@@ -152,7 +192,7 @@ export function MembersDirectory() {
             </fieldset>
           </CollapsibleFilterGroup>
 
-          {roleIsSelected ? (
+          {roleSkills.length > 0 && (
             <CollapsibleFilterGroup
               title="Skills"
               activeLabel={selectedSkills.length === 0 ? "Any" : `${selectedSkills.length} selected`}
@@ -171,7 +211,7 @@ export function MembersDirectory() {
                 </div>
               </fieldset>
             </CollapsibleFilterGroup>
-          ) : null}
+          )}
 
           <CollapsibleFilterGroup
             title="Location"
@@ -186,7 +226,7 @@ export function MembersDirectory() {
                 >
                   All
                 </FilterPill>
-                {joinFormLocations.map((location) => (
+                {locations.map((location) => (
                   <FilterPill
                     key={location}
                     selected={selectedLocation === location}
@@ -209,33 +249,39 @@ export function MembersDirectory() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredMembers.map((member) => (
             <article
-              key={member.slug}
+              key={member.id}
               className="group overflow-hidden rounded-2xl border border-brand-green/35 bg-surface-card p-4 transition-colors hover:bg-surface-hover"
             >
               <div className="flex items-start gap-3">
                 <div className="flex min-w-0 items-start gap-3">
-                  <Image
-                    src={member.avatar}
-                    alt={member.name}
-                    width={64}
-                    height={64}
-                    className="size-16 rounded-lg object-cover"
-                  />
+                  {member.avatar_url ? (
+                    <img
+                      src={member.avatar_url}
+                      alt={member.name}
+                      className="size-16 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-16 items-center justify-center rounded-lg border border-dashed border-brand-green/25 bg-surface-base font-body text-xs text-text-muted">
+                      —
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <h2 className="truncate font-display text-xl font-black text-text-primary">{member.name}</h2>
                     <p className="text-sm font-bold text-text-secondary">{member.title}</p>
                     <p className="text-xs text-text-muted">
-                      @{member.twitterHandle} • {member.location}
+                      {member.location}
                     </p>
                   </div>
                 </div>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
-                <span className="rounded-full border border-brand-green/40 bg-brand-green/10 px-2.5 py-1 text-xs font-bold text-brand-green">
-                  {member.role}
-                </span>
-                {member.skills.slice(0, 3).map((tag) => (
+                {member.role && (
+                  <span className="rounded-full border border-brand-green/40 bg-brand-green/10 px-2.5 py-1 text-xs font-bold text-brand-green">
+                    {member.role}
+                  </span>
+                )}
+                {(member.skills ?? []).slice(0, 3).map((tag) => (
                   <span
                     key={tag}
                     className="rounded-full border border-border-yellowmd bg-brand-yellow/10 px-2.5 py-1 text-xs font-bold text-brand-yellow"
@@ -245,17 +291,27 @@ export function MembersDirectory() {
                 ))}
               </div>
 
-              <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-text-secondary">{member.bio}</p>
+              {member.bio && (
+                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-text-secondary">{member.bio}</p>
+              )}
 
-              <Link
-                href={`/members/${member.slug}`}
-                className="mt-4 inline-flex rounded-full bg-brand-green px-4 py-2 text-xs font-black uppercase tracking-wide text-white transition-colors hover:bg-[#166f32]"
-              >
-                View profile
-              </Link>
+              {member.profile_link && (
+                <Link
+                  href={`/members/${member.profile_link}`}
+                  className="mt-4 inline-flex rounded-full bg-brand-green px-4 py-2 text-xs font-black uppercase tracking-wide text-white transition-colors hover:bg-[#166f32]"
+                >
+                  View profile
+                </Link>
+              )}
             </article>
           ))}
         </div>
+
+        {filteredMembers.length === 0 && (
+          <p className="py-12 text-center font-body text-sm text-text-muted">
+            No members match your filters.
+          </p>
+        )}
       </div>
     </div>
   );

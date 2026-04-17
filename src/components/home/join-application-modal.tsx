@@ -1,12 +1,26 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
-  joinLocationOptions as locationOptions,
-  joinRoleOptions as roleOptions,
-  joinSkillOptionsByRole as skillOptionsByRole,
-} from "@/lib/join-options";
+  faChartLine,
+  faCode,
+  faFilm,
+  faLandmark,
+  faPenNib,
+  faRocket,
+} from "@fortawesome/free-solid-svg-icons";
+
+const iconMap: Record<string, IconDefinition> = {
+  code: faCode,
+  "pen-nib": faPenNib,
+  rocket: faRocket,
+  film: faFilm,
+  "chart-line": faChartLine,
+  landmark: faLandmark,
+};
 
 type JoinApplicationModalProps = {
   open: boolean;
@@ -39,51 +53,26 @@ type FormState = {
   organisationWebsite: string;
 };
 
-const totalSteps = 6;
+type FormRole = { id: string; name: string; description: string; icon_name: string };
+type FormLocation = { id: string; name: string; location_group: string };
+type FormSkill = { id: string; name: string; role_name: string };
+type FormExperience = { id: string; title: string; subtitle: string; badge: string; badge_class: string };
+type FormLookingFor = { id: string; label: string };
+
+type FormConfig = {
+  roles: FormRole[];
+  locations: FormLocation[];
+  skills: FormSkill[];
+  experienceOptions: FormExperience[];
+  lookingForOptions: FormLookingFor[];
+};
+
+const totalSteps = 5;
 type FormErrorState = Partial<Record<keyof FormState | "role", string>>;
-
-const experienceOptions = [
-  {
-    title: "Just exploring",
-    subtitle: "Curious about Solana and web3, learning the basics.",
-    badge: "Newcomer",
-    badgeClass: "border-lime-400/40 bg-lime-500/10 text-lime-300",
-  },
-  {
-    title: "Already building",
-    subtitle: "Shipped something or actively working on a project.",
-    badge: "Builder",
-    badgeClass: "border-border-yellowmd bg-brand-yellow/10 text-brand-yellow",
-  },
-  {
-    title: "Experienced in web3",
-    subtitle: "Multiple projects, hackathons or professional roles.",
-    badge: "Veteran",
-    badgeClass: "border-amber-400/40 bg-amber-500/10 text-amber-300",
-  },
-  {
-    title: "Institutional / enterprise",
-    subtitle: "Representing an organisation exploring blockchain tech.",
-    badge: "Enterprise",
-    badgeClass: "border-border-yellow bg-surface-hover text-text-secondary",
-  },
-];
-
-const lookingForOptions = [
-  "Hackathons & bounties",
-  "Co-founder matching",
-  "Jobs & contract work",
-  "Grants & funding",
-  "Mentorship & learning",
-  "Events & networking",
-  "Community & ecosystem",
-  "Institutional partnerships",
-];
 
 const stepLabels = [
   "Who you are",
-  "Your role",
-  "Your skills",
+  "Role & skills",
   "Experience",
   "Looking for",
   "Your links",
@@ -91,8 +80,7 @@ const stepLabels = [
 
 const stepDescriptions = [
   "Name and location",
-  "Builder, founder, institution",
-  "What you bring to the table",
+  "What you do and what you bring",
   "Where you're at",
   "What you want from the ecosystem",
   "So we can find you",
@@ -101,7 +89,6 @@ const stepDescriptions = [
 const stepTitles = [
   "G'day - who are ya?",
   "What's your thing?",
-  "What do you bring?",
   "Where are ya at?",
   "What are you chasing?",
   "Where can we find ya?",
@@ -109,8 +96,7 @@ const stepTitles = [
 
 const stepSubtitles = [
   "Let's start with the basics. We'll use this to personalise your experience.",
-  "Pick the role that best describes you. This helps us match you to the right opportunities and people.",
-  "Select all that apply. We use this for talent matching and opportunity alerts.",
+  "Pick the role that best describes you, then select your skills. We use this for talent matching and opportunity alerts.",
   "Helps us match you with the right programs - from beginner bounties to senior advisory roles.",
   "Select everything that's relevant. You can update this anytime.",
   "So the ecosystem can discover you. All fields optional - share what you're comfortable with.",
@@ -185,16 +171,13 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
   const [submitError, setSubmitError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FormErrorState>({});
   const [formState, setFormState] = useState<FormState>(initialFormState);
+  const [config, setConfig] = useState<FormConfig | null>(null);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
+      if (event.key === "Escape") onClose();
     };
 
     document.addEventListener("keydown", onKeyDown);
@@ -217,15 +200,41 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
     }
   }, [open]);
 
+  useEffect(() => {
+    if (!open || config) return;
+    fetch("/api/join-form")
+      .then((r) => r.json())
+      .then((data) => setConfig(data))
+      .catch(() => {});
+  }, [open, config]);
+
+  const roles = config?.roles ?? [];
+  const australiaLocations = useMemo(
+    () => (config?.locations ?? []).filter((l) => l.location_group === "australia"),
+    [config],
+  );
+  const abroadLocations = useMemo(
+    () => (config?.locations ?? []).filter((l) => l.location_group === "abroad"),
+    [config],
+  );
   const availableSkills = useMemo(
-    () => skillOptionsByRole[formState.role] ?? ["Rust", "TypeScript", "Design", "Content", "Growth", "Research"],
+    () => (config?.skills ?? []).filter((s) => s.role_name === formState.role).map((s) => s.name),
+    [config, formState.role],
+  );
+  const experienceOptions = config?.experienceOptions ?? [];
+  const lookingForOptions = config?.lookingForOptions ?? [];
+
+  const activeRoleLinkFields = useMemo(
+    () => roleLinkFields[formState.role] ?? roleLinkFields.Builder,
     [formState.role],
   );
-  const activeRoleLinkFields = useMemo(() => roleLinkFields[formState.role] ?? roleLinkFields.Builder, [formState.role]);
 
-  if (!open) {
-    return null;
-  }
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
+
+  if (!open || !portalTarget) return null;
 
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     if (fieldErrors[key]) {
@@ -241,24 +250,15 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
     const nextErrors: FormErrorState = {};
 
     if (currentStep === 1) {
-      if (!formState.firstName.trim()) {
-        nextErrors.firstName = "First name is required.";
-      }
-      if (!formState.lastName.trim()) {
-        nextErrors.lastName = "Last name is required.";
-      }
-      if (!formState.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formState.email)) {
+      if (!formState.firstName.trim()) nextErrors.firstName = "First name is required.";
+      if (!formState.lastName.trim()) nextErrors.lastName = "Last name is required.";
+      if (!formState.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formState.email))
         nextErrors.email = "Please enter a valid email.";
-      }
-      if (!formState.location.trim()) {
-        nextErrors.location = "Please select your location.";
-      }
+      if (!formState.location.trim()) nextErrors.location = "Please select your location.";
     }
 
     if (currentStep === 2) {
-      if (!formState.role.length) {
-        nextErrors.role = "Choose one role to continue.";
-      }
+      if (!formState.role.length) nextErrors.role = "Choose one role to continue.";
     }
 
     setFieldErrors(nextErrors);
@@ -267,9 +267,7 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
 
   const nextStep = async () => {
     setSubmitError("");
-    if (!validateCurrentStep()) {
-      return;
-    }
+    if (!validateCurrentStep()) return;
 
     if (currentStep < totalSteps) {
       setCurrentStep((prev) => prev + 1);
@@ -280,16 +278,10 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
       setIsSubmitting(true);
       const response = await fetch("/api/join-application", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formState),
       });
-
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-
+      if (!response.ok) throw new Error("Request failed");
       setSubmitted(true);
     } catch {
       setSubmitError("Could not submit right now. Give it another crack in a moment.");
@@ -304,7 +296,7 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
     setCurrentStep((prev) => Math.max(1, prev - 1));
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm"
       onClick={onClose}
@@ -313,7 +305,6 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
         className="relative grid h-[84vh] w-full max-w-4xl overflow-hidden rounded-2xl border border-border-yellowmd bg-surface-base shadow-[0_20px_60px_rgba(0,0,0,0.45)] md:grid-cols-[280px_1fr]"
         onClick={(event) => event.stopPropagation()}
       >
-
         <aside className="hidden border-r border-border-yellow p-6 md:flex md:flex-col">
           <p className="font-mono text-xs font-extrabold uppercase tracking-widest text-brand-yellow">
             Community onboarding
@@ -387,73 +378,53 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
                   <div className="grid gap-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
-                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-text-muted">
-                          First name
-                        </label>
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-text-muted">First name</label>
                         <input
                           value={formState.firstName}
                           onChange={(event) => setField("firstName", event.target.value)}
                           placeholder="First name *"
-                          className={`w-full rounded-lg border bg-surface-card px-4 py-3 text-sm text-text-primary outline-none focus:border-border-yellowhi ${
-                            fieldErrors.firstName ? "border-red-400" : "border-border-yellow"
-                          }`}
+                          className={`w-full rounded-lg border bg-surface-card px-4 py-3 text-sm text-text-primary outline-none focus:border-border-yellowhi ${fieldErrors.firstName ? "border-red-400" : "border-border-yellow"}`}
                         />
                         {fieldErrors.firstName ? <p className="mt-1 text-xs font-bold text-red-300">{fieldErrors.firstName}</p> : null}
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-text-muted">
-                          Last name
-                        </label>
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-text-muted">Last name</label>
                         <input
                           value={formState.lastName}
                           onChange={(event) => setField("lastName", event.target.value)}
                           placeholder="Last name *"
-                          className={`w-full rounded-lg border bg-surface-card px-4 py-3 text-sm text-text-primary outline-none focus:border-border-yellowhi ${
-                            fieldErrors.lastName ? "border-red-400" : "border-border-yellow"
-                          }`}
+                          className={`w-full rounded-lg border bg-surface-card px-4 py-3 text-sm text-text-primary outline-none focus:border-border-yellowhi ${fieldErrors.lastName ? "border-red-400" : "border-border-yellow"}`}
                         />
                         {fieldErrors.lastName ? <p className="mt-1 text-xs font-bold text-red-300">{fieldErrors.lastName}</p> : null}
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-text-muted">
-                        Email address
-                      </label>
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-text-muted">Email address</label>
                       <input
                         type="email"
                         value={formState.email}
                         onChange={(event) => setField("email", event.target.value)}
                         placeholder="Email address *"
-                        className={`w-full rounded-lg border bg-surface-card px-4 py-3 text-sm text-text-primary outline-none focus:border-border-yellowhi ${
-                          fieldErrors.email ? "border-red-400" : "border-border-yellow"
-                        }`}
+                        className={`w-full rounded-lg border bg-surface-card px-4 py-3 text-sm text-text-primary outline-none focus:border-border-yellowhi ${fieldErrors.email ? "border-red-400" : "border-border-yellow"}`}
                       />
                       {fieldErrors.email ? <p className="mt-1 text-xs font-bold text-red-300">{fieldErrors.email}</p> : null}
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-text-muted">
-                        Location
-                      </label>
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-text-muted">Location</label>
                       <select
                         value={formState.location}
                         onChange={(event) => setField("location", event.target.value)}
-                        className={`w-full rounded-lg border bg-surface-card px-4 py-3 text-sm text-text-primary outline-none focus:border-border-yellowhi ${
-                          fieldErrors.location ? "border-red-400" : "border-border-yellow"
-                        }`}
+                        className={`w-full rounded-lg border bg-surface-card px-4 py-3 text-sm text-text-primary outline-none focus:border-border-yellowhi ${fieldErrors.location ? "border-red-400" : "border-border-yellow"}`}
                       >
                         <option value="">Select your city / state *</option>
                         <optgroup label="Australia">
-                          {locationOptions.australia.map((location) => (
-                            <option key={location} value={location}>
-                              {location}
-                            </option>
+                          {australiaLocations.map((loc) => (
+                            <option key={loc.id} value={loc.name}>{loc.name}</option>
                           ))}
                         </optgroup>
                         <optgroup label="Building from overseas">
-                          {locationOptions.abroad.map((location) => (
-                            <option key={location} value={location}>
-                              {location}
-                            </option>
+                          {abroadLocations.map((loc) => (
+                            <option key={loc.id} value={loc.name}>{loc.name}</option>
                           ))}
                         </optgroup>
                       </select>
@@ -463,9 +434,9 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
                 ) : null}
 
                 {currentStep === 2 ? (
-                  <>
+                  <div className="space-y-5">
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      {roleOptions.map((role) => (
+                      {roles.map((role) => (
                         <button
                           key={role.name}
                           type="button"
@@ -480,7 +451,7 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
                           }`}
                         >
                           <div className="mb-2 flex items-center gap-2 text-sm font-black">
-                            <FontAwesomeIcon icon={role.icon} className="text-sm" />
+                            <FontAwesomeIcon icon={iconMap[role.icon_name] || faRocket} className="text-sm" />
                             {role.name}
                           </div>
                           <p
@@ -494,37 +465,37 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
                       ))}
                     </div>
                     {fieldErrors.role ? <p className="mt-3 text-xs font-bold text-red-300">{fieldErrors.role}</p> : null}
-                  </>
-                ) : null}
 
-                {currentStep === 3 ? (
-                  <div>
-                    <p className="mb-3 text-sm text-text-secondary">
-                      Select all that apply ({formState.skills.length} selected).
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {availableSkills.map((skill) => {
-                        const selected = formState.skills.includes(skill);
-                        return (
-                          <button
-                            key={skill}
-                            type="button"
-                            onClick={() => setField("skills", toggleSelection(formState.skills, skill))}
-                            className={`rounded-full border px-3 py-1.5 text-xs font-bold ${
-                              selected
-                                ? "border-border-yellowhi bg-brand-yellow/10 text-brand-yellow"
-                                : "border-border-yellow bg-surface-card text-text-secondary hover:border-border-yellowmd"
-                            }`}
-                          >
-                            {skill}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {formState.role && availableSkills.length > 0 ? (
+                      <div className="rounded-xl border border-border-yellow bg-surface-card p-4">
+                        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-text-muted">
+                          Skills — select all that apply ({formState.skills.length} selected)
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {availableSkills.map((skill) => {
+                            const selected = formState.skills.includes(skill);
+                            return (
+                              <button
+                                key={skill}
+                                type="button"
+                                onClick={() => setField("skills", toggleSelection(formState.skills, skill))}
+                                className={`rounded-full border px-3 py-1.5 text-xs font-bold ${
+                                  selected
+                                    ? "border-border-yellowhi bg-brand-yellow/10 text-brand-yellow"
+                                    : "border-border-yellow bg-surface-base text-text-secondary hover:border-border-yellowmd"
+                                }`}
+                              >
+                                {skill}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
 
-                {currentStep === 4 ? (
+                {currentStep === 3 ? (
                   <div className="grid gap-3">
                     {experienceOptions.map((option) => (
                       <button
@@ -549,7 +520,7 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
                             </p>
                           </div>
                           <span
-                            className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ${option.badgeClass}`}
+                            className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ${option.badge_class}`}
                           >
                             {option.badge}
                           </span>
@@ -559,23 +530,23 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
                   </div>
                 ) : null}
 
-                {currentStep === 5 ? (
+                {currentStep === 4 ? (
                   <div className="grid gap-4">
                     <div className="grid gap-2 sm:grid-cols-2">
                       {lookingForOptions.map((item) => {
-                        const selected = formState.lookingFor.includes(item);
+                        const selected = formState.lookingFor.includes(item.label);
                         return (
                           <button
-                            key={item}
+                            key={item.id}
                             type="button"
-                            onClick={() => setField("lookingFor", toggleSelection(formState.lookingFor, item))}
+                            onClick={() => setField("lookingFor", toggleSelection(formState.lookingFor, item.label))}
                             className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
                               selected
                                 ? "border-border-yellowhi bg-brand-yellow/10 text-brand-yellow"
                                 : "border-border-yellow bg-surface-card text-text-secondary hover:border-border-yellowmd"
                             }`}
                           >
-                            {item}
+                            {item.label}
                           </button>
                         );
                       })}
@@ -593,7 +564,7 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
                   </div>
                 ) : null}
 
-                {currentStep === 6 ? (
+                {currentStep === 5 ? (
                   <div className="grid gap-3">
                     <div>
                       <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-text-muted">Twitter / X</label>
@@ -688,6 +659,7 @@ export function JoinApplicationModal({ open, onClose }: JoinApplicationModalProp
           )}
         </main>
       </div>
-    </div>
+    </div>,
+    portalTarget,
   );
 }
