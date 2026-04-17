@@ -156,6 +156,17 @@ This keeps deployment simple (e.g. Vercel + Supabase + Resend) and avoids syncin
 
 ---
 
+## Future ideas
+
+Rough backlog — not committed work, but directions that could deepen engagement and content quality:
+
+- **XP and levels for members** — A lightweight progression system: earn XP and level up by attending events, supporting other members, and contributing to Solana’s growth in Australia (with clear rules and moderation so it stays fair and fun).
+- **Rich text for profiles and admin** — Replace plain text fields with a proper editor (bold, lists, links, etc.) on member profiles and across the admin CMS where long-form copy lives.
+- **Community-submitted events** — Let members add events that aren’t hosted by Superteam Australia, with moderation or verification before they appear alongside the main calendar (e.g. Luma-integrated or curated listings).
+- **Testimonial feedback** — A dedicated flow for members to submit feedback or stories; admins could review and promote selected submissions into the public testimonials section.
+
+---
+
 ## License / contributing
 
 Private project unless otherwise noted. Adjust this section for your team’s workflow.

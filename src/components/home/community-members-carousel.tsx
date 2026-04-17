@@ -81,38 +81,40 @@ export function CommunityMembersCarousel({
           </AnimatePresence>
         </div>
 
-        <div className="flex min-h-[22rem] flex-col justify-between py-1 md:min-h-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={active}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -16, opacity: 0 }}
-              transition={{ duration: 0.24, ease: "easeInOut" }}
-              className="flex min-h-0 flex-1 flex-col md:block"
-            >
-              <h3 className="font-display text-3xl font-black text-text-primary">{activeMember.name}</h3>
-              <p className="mt-1 font-body text-sm font-bold uppercase tracking-wide text-text-muted">
-                {activeMember.role}
-              </p>
+        <div className="flex min-h-[22rem] flex-col gap-4 py-1 md:h-[22rem] md:min-h-[22rem]">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={active}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -16, opacity: 0 }}
+                transition={{ duration: 0.24, ease: "easeInOut" }}
+                className="flex h-full min-h-0 flex-col overflow-hidden"
+              >
+                <h3 className="shrink-0 font-display text-3xl font-black text-text-primary">{activeMember.name}</h3>
+                <p className="mt-1 shrink-0 font-body text-sm font-bold uppercase tracking-wide text-text-muted">
+                  {activeMember.role}
+                </p>
 
-              <motion.p className="mt-6 h-[14rem] overflow-y-auto font-body text-lg leading-relaxed text-text-secondary md:h-auto md:min-h-0 md:overflow-visible">
-                {activeMember.quote.split(" ").map((word, index) => (
-                  <motion.span
-                    key={`${activeMember.name}-${index}`}
-                    initial={{ filter: "blur(8px)", opacity: 0, y: 4 }}
-                    animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, ease: "easeInOut", delay: 0.018 * index }}
-                    className="inline-block"
-                  >
-                    {word}&nbsp;
-                  </motion.span>
-                ))}
-              </motion.p>
-            </motion.div>
-          </AnimatePresence>
+                <motion.p className="mt-6 min-h-0 max-h-[min(14rem,42vh)] flex-1 overflow-y-auto overscroll-contain pr-1 font-body text-lg leading-relaxed text-text-secondary [scrollbar-gutter:stable] md:mt-4 md:max-h-none md:min-h-0">
+                  {activeMember.quote.split(" ").map((word, index) => (
+                    <motion.span
+                      key={`${activeMember.name}-${index}`}
+                      initial={{ filter: "blur(8px)", opacity: 0, y: 4 }}
+                      animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut", delay: 0.018 * index }}
+                      className="inline-block"
+                    >
+                      {word}&nbsp;
+                    </motion.span>
+                  ))}
+                </motion.p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="shrink-0 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={handlePrev}
